@@ -1,5 +1,5 @@
 import Router from "express";
-import { registerProvider, providerLogin, updateProviderProfile, getSingleProvider, getALLNearByProviders, getProviderByServices, logoutProvider } from "../Controllers/Provider.Controller.js";
+import { registerProvider, providerLogin, updateProviderProfile, getSingleProvider, getALLNearByProviders, logoutProvider } from "../Controllers/Provider.Controller.js";
 import { authMiddleware } from "../Middlewares/Auth.Middleware.js";
 
 const router = Router();
@@ -9,7 +9,6 @@ router.route('/loginProvider').post(providerLogin);
 router.route('/updateProvider').put(authMiddleware, updateProviderProfile);
 router.route('/getProvider/:id').get(getSingleProvider);
 router.route('/getAllNearByProviders').get(getALLNearByProviders);
-router.route('/getProvidersByService').post(getProviderByServices);
 router.route('/logoutProvider').get(authMiddleware, logoutProvider);
 
 export default router;

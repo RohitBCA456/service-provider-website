@@ -10,7 +10,7 @@ export default function Footer() {
   ];
 
   return (
-    <footer className="bg-white dark:bg-gray-900 text-gray-600 dark:text-gray-300 px-4 py-10 mx-auto md:px-8 w-full">
+    <footer className="bg-white dark:bg-zinc-900 text-zinc-800 dark:text-white px-4 py-10 mx-auto md:px-8 w-full">
       <div className="max-w-lg sm:mx-auto sm:text-center">
         <h2 className="text-2xl font-bold text-indigo-600 dark:text-indigo-400">ServiceFinder</h2>
         <p className="leading-relaxed mt-2 text-[15px]">

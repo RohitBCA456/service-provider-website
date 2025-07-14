@@ -27,52 +27,51 @@ function CreateAccount() {
   }, []);
 
   const handleCreateAccount = async () => {
-  if (
-    !name ||
-    !email ||
-    !password ||
-    !address ||
-    !coords.latitude ||
-    !coords.longitude
-  ) {
-    alert("All fields are required.");
-    return;
-  }
-
-  const isEmailValid = /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
-  if (!isEmailValid) {
-    alert("Please enter a valid email address.");
-    return;
-  }
-
-  const formData = new FormData();
-  formData.append("name", name);
-  formData.append("role", role);
-  formData.append("email", email);
-  formData.append("password", password);
-  formData.append("address", address);
-  formData.append("latitude", coords.latitude);
-  formData.append("longitude", coords.longitude);
-  if (avatar) formData.append("avatar", avatar);
-
-  toast.promise(
-    axios.post("http://localhost:5000/api/v1/customers/registerCustomer", formData, {
-      method: 'POST',
-      headers: { "Content-Type": "multipart/form-data" },
-    }),
-    {
-      loading: "Registering your account...",
-      success: "Account created successfully!",
-      error: (err) =>
-        err?.response?.data?.message || "Registration failed. Try again.",
+    if (
+      !name ||
+      !email ||
+      !password ||
+      !address ||
+      !coords.latitude ||
+      !coords.longitude
+    ) {
+      alert("All fields are required.");
+      return;
     }
-  ).then((res) => {
-    if (res.data.success) {
-      navigate("/Login");
-    }
-  });
-};
 
+    const isEmailValid = /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
+    if (!isEmailValid) {
+      alert("Please enter a valid email address.");
+      return;
+    }
+
+    const formData = new FormData();
+    formData.append("name", name);
+    formData.append("role", role);
+    formData.append("email", email);
+    formData.append("password", password);
+    formData.append("address", address);
+    formData.append("latitude", coords.latitude);
+    formData.append("longitude", coords.longitude);
+    if (avatar) formData.append("avatar", avatar);
+
+    toast.promise(
+      axios.post("http://localhost:5000/api/v1/customers/registerCustomer", formData, {
+        method: "POST",
+        headers: { "Content-Type": "multipart/form-data" },
+      }),
+      {
+        loading: "Registering your account...",
+        success: "Account created successfully!",
+        error: (err) =>
+          err?.response?.data?.message || "Registration failed. Try again.",
+      }
+    ).then((res) => {
+      if (res.data.success) {
+        navigate("/Login");
+      }
+    });
+  };
 
   const handleSignInRedirect = () => navigate("/login");
 
@@ -114,7 +113,7 @@ function CreateAccount() {
           <label className="block text-sm text-gray-700">Full Name</label>
           <input
             type="text"
-            className="w-full mt-1 mb-4 px-4 py-2 border rounded-md focus:ring-2 focus:ring-blue-200"
+            className="w-full mt-1 mb-4 px-4 py-2 border border-gray-300 rounded-md text-gray-800 focus:outline-none focus:ring-2 focus:ring-blue-200 focus:border-blue-500"
             placeholder="Your name"
             value={name}
             onChange={(e) => setName(e.target.value)}
@@ -124,7 +123,7 @@ function CreateAccount() {
           <label className="block text-sm text-gray-700">Email</label>
           <input
             type="email"
-            className="w-full mt-1 mb-4 px-4 py-2 border rounded-md"
+            className="w-full mt-1 mb-4 px-4 py-2 border border-gray-300 rounded-md text-gray-800 focus:outline-none focus:ring-2 focus:ring-blue-200 focus:border-blue-500"
             placeholder="you@example.com"
             value={email}
             onChange={(e) => setEmail(e.target.value)}
@@ -134,7 +133,7 @@ function CreateAccount() {
           <label className="block text-sm text-gray-700">Password</label>
           <input
             type="password"
-            className="w-full mt-1 mb-4 px-4 py-2 border rounded-md"
+            className="w-full mt-1 mb-4 px-4 py-2 border border-gray-300 rounded-md text-gray-800 focus:outline-none focus:ring-2 focus:ring-blue-200 focus:border-blue-500"
             placeholder="Create a password"
             value={password}
             onChange={(e) => setPassword(e.target.value)}
@@ -143,7 +142,7 @@ function CreateAccount() {
           {/* Role */}
           <label className="block text-sm text-gray-700">Role</label>
           <select
-            className="w-full mt-1 mb-4 px-4 py-2 border rounded-md"
+            className="w-full mt-1 mb-4 px-4 py-2 border border-gray-300 rounded-md text-gray-800 focus:outline-none focus:ring-2 focus:ring-blue-200 focus:border-blue-500"
             value={role}
             onChange={(e) => setRole(e.target.value)}
           >
@@ -155,14 +154,13 @@ function CreateAccount() {
           <label className="block text-sm text-gray-700">Your Address</label>
           <input
             type="text"
-            className="w-full mt-1 mb-4 px-4 py-2 border rounded-md"
+            className="w-full mt-1 mb-4 px-4 py-2 border border-gray-300 rounded-md text-gray-800 focus:outline-none focus:ring-2 focus:ring-blue-200 focus:border-blue-500"
             placeholder="Street, City, State"
             value={address}
             onChange={(e) => setAddress(e.target.value)}
           />
 
-          {/* Avatar (optional) */}
-          {/* Avatar (optional) */}
+          {/* Avatar Upload */}
           <label className="block text-sm text-gray-700 mb-1">
             Profile Photo (optional)
           </label>

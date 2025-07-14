@@ -9,38 +9,35 @@ function Login() {
   const navigate = useNavigate();
 
   const handleLogin = async () => {
-  if (!email || !password) {
-    alert("Please enter both email and password.");
-    return;
-  }
+    if (!email || !password) {
+      alert("Please enter both email and password.");
+      return;
+    }
 
-  const body = {
-    email,
-    password,
+    const body = { email, password };
+
+    try {
+      toast
+        .promise(
+          axios.post("http://localhost:5000/api/v1/customers/loginCustomer", body, {
+            withCredentials: true,
+          }),
+          {
+            loading: "Logging into your account...",
+            success: "Logged in successfully!",
+            error: (err) =>
+              err?.response?.data?.message || "Login failed. Try again.",
+          }
+        )
+        .then((res) => {
+          if (res.data.success) {
+            navigate("/home");
+          }
+        });
+    } catch (error) {
+      alert("Login error: " + (error.response?.data?.message || error.message));
+    }
   };
-
-  try {
-    toast
-      .promise(
-        axios.post("http://localhost:5000/api/v1/customers/loginCustomer", body,{
-          withCredentials: true
-        }),
-        {
-          loading: "Logging into your account...",
-          success: "Logged in successfully!",
-          error: (err) =>
-            err?.response?.data?.message || "Login failed. Try again.",
-        }
-      )
-      .then((res) => {
-        if (res.data.success) {
-          navigate("/home");
-        }
-      });
-  } catch (error) {
-    alert("Login error: " + (error.response?.data?.message || error.message));
-  }
-};
 
   const handleSignUpRedirect = () => {
     navigate("/");
@@ -55,8 +52,7 @@ function Login() {
           Access your Service Finder dashboard
         </h2>
         <p className="text-sm text-center max-w-md">
-          Log in to connect with local professionals or manage your service
-          listings.
+          Log in to connect with local professionals or manage your service listings.
         </p>
       </div>
 
@@ -81,7 +77,7 @@ function Login() {
           <label className="block text-sm text-gray-700">Email</label>
           <input
             type="email"
-            className="w-full mt-1 mb-4 px-4 py-2 border rounded-md focus:ring-2 focus:ring-blue-200"
+            className="w-full mt-1 mb-4 px-4 py-2 border border-gray-300 rounded-md text-gray-800 focus:outline-none focus:ring-2 focus:ring-blue-200 focus:border-blue-500"
             placeholder="you@example.com"
             value={email}
             onChange={(e) => setEmail(e.target.value)}
@@ -92,7 +88,7 @@ function Login() {
           <label className="block text-sm text-gray-700">Password</label>
           <input
             type="password"
-            className="w-full mt-1 mb-4 px-4 py-2 border rounded-md focus:ring-2 focus:ring-blue-200"
+            className="w-full mt-1 mb-4 px-4 py-2 border border-gray-300 rounded-md text-gray-800 focus:outline-none focus:ring-2 focus:ring-blue-200 focus:border-blue-500"
             placeholder="Enter your password"
             value={password}
             onChange={(e) => setPassword(e.target.value)}

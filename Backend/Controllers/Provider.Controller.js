@@ -28,7 +28,15 @@ export const registerProvider = async (req, res) => {
     });
 
     if (
-      ![name, email, password, latitude, longitude, address, servicesOffered].every(Boolean)
+      ![
+        name,
+        email,
+        password,
+        latitude,
+        longitude,
+        address,
+        servicesOffered,
+      ].every(Boolean)
     ) {
       return res.status(400).json({ message: "All fields are required" });
     }
@@ -63,7 +71,9 @@ export const registerProvider = async (req, res) => {
       avatar: avatarUrl,
     });
 
-    return res.status(201).json({ message: "Provider registered successfully" });
+    return res
+      .status(201)
+      .json({ message: "Provider registered successfully" });
   } catch (err) {
     console.error("Error in registerProvider:", err);
     return res.status(500).json({ error: "Internal server error" });
@@ -101,14 +111,11 @@ export const providerLogin = async (req, res) => {
       path: "/",
     };
 
-    return res
-      .status(200)
-      .cookie("accessToken", token, options)
-      .json({
-        success: true,
-        message: "Provider logged in successfully",
-        accessToken: token,
-      });
+    return res.status(200).cookie("accessToken", token, options).json({
+      success: true,
+      message: "Provider logged in successfully",
+      accessToken: token,
+    });
   } catch (error) {
     console.error("Error logging in provider:", error);
     return res.status(500).json({
@@ -119,16 +126,17 @@ export const providerLogin = async (req, res) => {
 
 export const getALLNearByProviders = async (req, res) => {
   try {
-    const { lat, lng, service } = req.query;
+    let { lat, lng, service } = req.query;
 
-    if (![lat, lng, service]) {
-      return res
-        .status(400)
-        .json({ message: "Latitude, longitude, and service are required" });
+    if (!lat || !lng) {
+      return res.status(400).json({
+        message: "Latitude and longitude are required",
+      });
     }
 
     const query = {
       role: "provider",
+      availability: true,
       location: {
         $near: {
           $geometry: {
@@ -140,8 +148,8 @@ export const getALLNearByProviders = async (req, res) => {
       },
     };
 
-    if (service) {
-      query.servicesOffered = service;
+    if (service && service.trim() !== "") {
+      query.servicesOffered = { $in: [service.toLowerCase()] };
     }
 
     const providers = await User.find(query);
@@ -172,13 +180,15 @@ export const getSingleProvider = async (req, res) => {
 
 export const updateProviderProfile = async (req, res) => {
   try {
-    const { name, servicesOffered, latitude, longitude, address } = req.body;
+    let { name, servicesOffered, latitude, longitude, address } = req.body;
 
     const avatar = req.file?.path;
 
     if (![name, servicesOffered, latitude, longitude, address]) {
       return res.status(400).json({ message: "All fields are required." });
     }
+    
+    servicesOffered = servicesOffered.toLowerCase();
 
     const provider = await User.findById(req.user?.id);
     if (!provider || provider.role !== "provider") {
@@ -211,87 +221,44 @@ export const updateProviderProfile = async (req, res) => {
   }
 };
 
-export const getProviderByServices = async (req, res) => {
+export const logoutProvider = async (req, res) => {
   try {
-    const { service } = req.body;
+    const userId = req.user?.id;
 
-    if (!service) {
-      return res.status(400).json({
-        success: false,
-        message: "Service name is required.",
-      });
-    }
+    const provider = await User.findByIdAndUpdate(
+      userId,
+      {
+        $unset: {
+          accessToken: "",
+        },
+      },
+      {
+        new: true,
+      }
+    );
 
-    console.log("Service requested:", service);
-
-    // Find users who have role 'provider' and offer this service
-    const providers = await User.find({
-      role: "provider",
-      servicesOffered: { $in: [service] },
-    });
-
-    if (providers.length === 0) {
+    if (!provider) {
       return res.status(404).json({
         success: false,
-        message: "No provider found for this service.",
+        message: "No user found",
       });
     }
 
-    console.log("Found providers:", providers);
+    const options = {
+      httpOnly: true,
+      secure: true,
+      sameSite: "None",
+      path: "/",
+    };
 
-    return res.status(200).json({
+    return res.status(200).clearCookie("accessToken", options).json({
       success: true,
-      message: "Providers found for the requested service.",
-      providers,
+      message: "Logout Successfully",
     });
   } catch (error) {
-    console.error("Error while listing providers for the service:", error);
     return res.status(500).json({
       success: false,
-      message: "Internal server error while listing providers.",
+      message: "Internal server error while logging out",
     });
   }
-};
-
-export const logoutProvider = async (req, res) => {
- try {
-   const userId = req.user?.id;
- 
-   const provider = await User.findByIdAndUpdate(
-     userId,
-     {
-       $unset: {
-         accessToken: "",
-       },
-     },
-     {
-       new: true,
-     }
-   );
- 
-    if (!provider) {
-     return res.status(404).json({
-       success: false,
-       message: "No user found",
-     });
-   }
- 
-   const options = {
-     httpOnly: true,
-     secure: true,
-     sameSite: "None",
-     path: "/",
-   };
- 
-   return res.status(200).clearCookie("accessToken", options).json({
-     success: true,
-     message: "Logout Successfully",
-   });
- 
- } catch (error) {
-    return res.status(500).json({
-      success: false,
-      message: 'Internal server error while logging out'
-    })
- }
 };

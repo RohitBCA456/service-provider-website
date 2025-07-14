@@ -1,0 +1,162 @@
+[
+  {
+    "name": "Provider 1",
+    "email": "provider1@example.com",
+    "password": "password123",
+    "role": "provider",
+    "avatar": "",
+    "rating": 3.5,
+    "review": 10,
+    "servicesOffered": ["plumber", "bathroom fittings"],
+    "availability": true,
+    "location": {
+      "type": "Point",
+      "coordinates": [91.7635072, 26.1586944],
+      "address": "Near Point 1, Tinsukia, Assam"
+    }
+  },
+  {
+    "name": "Provider 2",
+    "email": "provider2@example.com",
+    "password": "password123",
+    "role": "provider",
+    "avatar": "",
+    "rating": 3.6,
+    "review": 11,
+    "servicesOffered": ["plumber", "bathroom fittings"],
+    "availability": true,
+    "location": {
+      "type": "Point",
+      "coordinates": [91.7685072, 26.1636944],
+      "address": "Near Point 2, Tinsukia, Assam"
+    }
+  },
+  {
+    "name": "Provider 3",
+    "email": "provider3@example.com",
+    "password": "password123",
+    "role": "provider",
+    "avatar": "",
+    "rating": 3.7,
+    "review": 12,
+    "servicesOffered": ["plumber", "bathroom fittings"],
+    "availability": true,
+    "location": {
+      "type": "Point",
+      "coordinates": [91.7735072, 26.1686944],
+      "address": "Near Point 3, Tinsukia, Assam"
+    }
+  },
+  {
+    "name": "Provider 4",
+    "email": "provider4@example.com",
+    "password": "password123",
+    "role": "provider",
+    "avatar": "",
+    "rating": 3.8,
+    "review": 13,
+    "servicesOffered": ["plumber", "bathroom fittings"],
+    "availability": true,
+    "location": {
+      "type": "Point",
+      "coordinates": [91.7785072, 26.1736944],
+      "address": "Near Point 4, Tinsukia, Assam"
+    }
+  },
+  {
+    "name": "Provider 5",
+    "email": "provider5@example.com",
+    "password": "password123",
+    "role": "provider",
+    "avatar": "",
+    "rating": 3.9,
+    "review": 14,
+    "servicesOffered": ["plumber", "bathroom fittings"],
+    "availability": true,
+    "location": {
+      "type": "Point",
+      "coordinates": [91.7835072, 26.1786944],
+      "address": "Near Point 5, Tinsukia, Assam"
+    }
+  },
+  {
+    "name": "Provider 6",
+    "email": "provider6@example.com",
+    "password": "password123",
+    "role": "provider",
+    "avatar": "",
+    "rating": 4.0,
+    "review": 15,
+    "servicesOffered": ["plumber", "bathroom fittings"],
+    "availability": true,
+    "location": {
+      "type": "Point",
+      "coordinates": [91.7885072, 26.1836944],
+      "address": "Near Point 6, Tinsukia, Assam"
+    }
+  },
+  {
+    "name": "Provider 7",
+    "email": "provider7@example.com",
+    "password": "password123",
+    "role": "provider",
+    "avatar": "",
+    "rating": 4.1,
+    "review": 16,
+    "servicesOffered": ["plumber", "bathroom fittings"],
+    "availability": true,
+    "location": {
+      "type": "Point",
+      "coordinates": [91.7935072, 26.1886944],
+      "address": "Near Point 7, Tinsukia, Assam"
+    }
+  },
+  {
+    "name": "Provider 8",
+    "email": "provider8@example.com",
+    "password": "password123",
+    "role": "provider",
+    "avatar": "",
+    "rating": 4.2,
+    "review": 17,
+    "servicesOffered": ["plumber", "bathroom fittings"],
+    "availability": true,
+    "location": {
+      "type": "Point",
+      "coordinates": [91.7985072, 26.1936944],
+      "address": "Near Point 8, Tinsukia, Assam"
+    }
+  },
+  {
+    "name": "Provider 9",
+    "email": "provider9@example.com",
+    "password": "password123",
+    "role": "provider",
+    "avatar": "",
+    "rating": 4.3,
+    "review": 18,
+    "servicesOffered": ["plumber", "bathroom fittings"],
+    "availability": true,
+    "location": {
+      "type": "Point",
+      "coordinates": [91.8035072, 26.1986944],
+      "address": "Near Point 9, Tinsukia, Assam"
+    }
+  },
+  {
+    "name": "Provider 10",
+    "email": "provider10@example.com",
+    "password": "password123",
+    "role": "provider",
+    "avatar": "",
+    "rating": 4.4,
+    "review": 19,
+    "servicesOffered": ["plumber", "bathroom fittings"],
+    "availability": true,
+    "location": {
+      "type": "Point",
+      "coordinates": [91.8085072, 26.2036944],
+      "address": "Near Point 10, Tinsukia, Assam"
+    }
+  }
+]

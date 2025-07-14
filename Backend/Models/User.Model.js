@@ -17,7 +17,9 @@ const userSchema = new Schema(
       type: Number, // for provider only
       default: 0,
     },
-
+    review: {
+      type: Number,  // for provider only
+    },
     location: {
       type: {
         type: String,

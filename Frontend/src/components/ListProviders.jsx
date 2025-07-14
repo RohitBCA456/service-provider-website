@@ -1,13 +1,8 @@
 import { useEffect, useRef, useState } from "react";
 import { Star, MapPin } from "lucide-react";
 
-const Marquee = ({
-  children,
-  direction = "left",
-  speed = 50,
-  pauseOnHover = true,
-  className = "",
-}) => {
+// Marquee component (unchanged)
+const Marquee = ({ children, direction = "left", speed = 50, pauseOnHover = true, className = "" }) => {
   const [contentWidth, setContentWidth] = useState(0);
   const contentRef = useRef(null);
   const [isPaused, setIsPaused] = useState(false);
@@ -53,11 +48,12 @@ const Marquee = ({
   );
 };
 
+// ProviderCard (unchanged)
 const ProviderCard = ({ avatar, name, rating, services, location }) => (
   <div className="w-80 p-5 bg-white dark:bg-zinc-900 rounded-xl border border-border shadow-md hover:shadow-xl hover:scale-105 transition-transform duration-300 ease-in-out cursor-pointer">
     <div className="flex items-center gap-4 mb-3">
       <img
-        src={avatar}
+        src={avatar || "https://api.dicebear.com/7.x/avataaars/svg?seed=default"}
         alt={name}
         className="w-12 h-12 rounded-full object-cover border"
       />
@@ -89,58 +85,74 @@ const ProviderCard = ({ avatar, name, rating, services, location }) => (
 );
 
 export default function MarqueeProviderDemo() {
-  const providers = [
-    {
-      id: 1,
-      name: "Priya Sharma",
-      avatar: "https://api.dicebear.com/7.x/avataaars/svg?seed=priya",
-      rating: 5,
-      services: ["Plumbing", "Leak Repair", "Drain Cleaning"],
-      location: "Connaught Place, New Delhi",
-    },
-    {
-      id: 2,
-      name: "Amit Verma",
-      avatar: "https://api.dicebear.com/7.x/avataaars/svg?seed=amit",
-      rating: 4,
-      services: ["Electrician", "Wiring", "Appliance Installation"],
-      location: "Gurgaon, Haryana",
-    },
-    {
-      id: 3,
-      name: "Sunita Rao",
-      avatar: "https://api.dicebear.com/7.x/avataaars/svg?seed=sunita",
-      rating: 5,
-      services: ["House Cleaning", "Sanitization"],
-      location: "Noida, Uttar Pradesh",
-    },
-    {
-      id: 4,
-      name: "Rahul Mehta",
-      avatar: "https://api.dicebear.com/7.x/avataaars/svg?seed=rahul",
-      rating: 4,
-      services: ["Carpentry", "Furniture Repair"],
-      location: "Lajpat Nagar, Delhi",
-    },
-  ];
+  const [providers, setProviders] = useState([]);
+  const [coords, setCoords] = useState(null);
+  const [error, setError] = useState(null);
+  const service = ""; // or you can dynamically set this based on user input
+
+  // Fetch real-time coordinates on mount
+  useEffect(() => {
+    navigator.geolocation.getCurrentPosition(
+      (position) => {
+        setCoords({
+          lat: position.coords.latitude,
+          lng: position.coords.longitude,
+        });
+      },
+      (err) => {
+        setError("Location permission denied or unavailable.");
+        console.error("Geolocation error:", err);
+      }
+    );
+  }, []);
+
+  // Fetch providers once coordinates are available
+  useEffect(() => {
+    const fetchProviders = async () => {
+      if (!coords) return;
+
+      try {
+        const url = `http://localhost:5000/api/v1/providers/getAllNearByProviders?lat=${coords.lat}&lng=${coords.lng}&service=${service}`;
+        const res = await fetch(url);
+        const data = await res.json();
+        setProviders(data);
+      } catch (error) {
+        console.error("Error fetching providers:", error);
+        setError("Failed to load providers.");
+      }
+    };
+
+    fetchProviders();
+  }, [coords]);
 
   return (
     <div className="py-16 bg-gray-50 dark:bg-zinc-950">
       <h2 className="text-3xl font-bold text-center text-gray-800 dark:text-white mb-10">
         Trusted Local Service Providers
       </h2>
-      <Marquee direction="left" className="py-4 px-6" speed={40}>
-        {providers.map((provider) => (
-          <ProviderCard
-            key={provider.id}
-            avatar={provider.avatar}
-            name={provider.name}
-            rating={provider.rating}
-            services={provider.services}
-            location={provider.location}
-          />
-        ))}
-      </Marquee>
+
+      {error && (
+        <p className="text-red-500 text-center mb-4">{error}</p>
+      )}
+
+      {!coords ? (
+        <p className="text-center text-gray-500 dark:text-gray-300">Fetching your location...</p>
+      ) : providers.length > 0 ? (
+        <Marquee direction="left" className="py-4 px-6" speed={40}>
+          {providers.map((provider) => (
+            <ProviderCard
+              key={provider._id}
+              avatar={provider.avatar}
+              name={provider.name}
+              rating={Math.round(provider.rating || 0)}
+              services={provider.servicesOffered || []}
+              location={provider.location?.address || "Location unavailable"}
+            />
+          ))}
+        </Marquee>
+      ) : (
+        <p className="text-gray-500 dark:text-gray-300 text-center w-full mt-4">No nearby providers found.</p>
+      )}
     </div>
   );
 }
