@@ -19,7 +19,7 @@ function Login() {
     try {
       toast
         .promise(
-          axios.post("http://localhost:5000/api/v1/customers/loginCustomer", body, {
+          axios.post("http://localhost:5000/api/v1/auth/login", body, {
             withCredentials: true,
           }),
           {
@@ -30,8 +30,14 @@ function Login() {
           }
         )
         .then((res) => {
-          if (res.data.success) {
-            navigate("/home");
+          const userRole = res.data.user_data?.userRole;
+          if (res.data.success && userRole === 'provider') {
+            localStorage.setItem('Role', userRole);
+            navigate("/ProviderHome");
+          }
+          else if(res.data.success && userRole === 'customer') {
+            localStorage.setItem('Role', userRole);
+            navigate("/Home")
           }
         });
     } catch (error) {

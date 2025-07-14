@@ -46,6 +46,8 @@ const ServiceFinderHeader = ({ theme, setTheme }) => {
     });
   };
 
+  const userRole = localStorage.getItem('Role')
+
 const handleSearch = () => {
   if (!searchService.trim()) {
     toast.error("Please enter a service to search.");
@@ -115,7 +117,8 @@ const handleSearch = () => {
         </div>
 
         {/* Search Bar */}
-        <div className="hidden md:flex items-center bg-gray-100 dark:bg-zinc-800 border border-gray-300 dark:border-zinc-700 rounded-full px-4 py-2 max-w-md w-full mx-4">
+       {userRole !== 'provider' && (
+          <div className="hidden md:flex items-center bg-gray-100 dark:bg-zinc-800 border border-gray-300 dark:border-zinc-700 rounded-full px-4 py-2 max-w-md w-full mx-4">
           <input
             type="text"
             value={searchService}
@@ -130,6 +133,7 @@ const handleSearch = () => {
             <MagnifyingGlassIcon className="w-4 h-4" />
           </button>
         </div>
+       )}
 
         {/* Right Actions */}
         <div className="relative flex items-center gap-2 md:gap-4" ref={dropdownRef}>
@@ -149,7 +153,7 @@ const handleSearch = () => {
           {/* Desktop Links */}
           <div className="hidden md:flex items-center gap-4">
             <span className="text-sm md:text-base cursor-pointer hover:text-blue-600 transition-colors">
-              For Providers
+              For {userRole}
             </span>
             <GlobeIcon className="w-5 h-5 cursor-pointer hover:scale-110" />
           </div>
@@ -181,7 +185,8 @@ const handleSearch = () => {
       </div>
 
       {/* Mobile Search */}
-      <div className="md:hidden px-4 pb-4">
+     {userRole !== 'provider' && (
+       <div className="md:hidden px-4 pb-4">
         <div className="flex items-center bg-gray-100 dark:bg-zinc-800 border border-gray-300 dark:border-zinc-700 rounded-full px-4 py-2 w-full">
           <input
             type="text"
@@ -198,6 +203,7 @@ const handleSearch = () => {
           </button>
         </div>
       </div>
+     )}
     </nav>
   );
 };

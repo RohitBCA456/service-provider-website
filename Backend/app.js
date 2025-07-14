@@ -4,6 +4,7 @@ import cors from 'cors';
 import dotenv from 'dotenv';
 import customerRouter from './Routers/Customer.Router.js';
 import providerRouter from './Routers/Provider.Router.js';
+import authRouter from './Routers/Auth.Router.js';
 
 dotenv.config({path: './.env'});
 
@@ -25,5 +26,6 @@ app.use(cors(
 
 app.use('/api/v1/customers', customerRouter);
 app.use('/api/v1/providers', providerRouter);
+app.use('/api/v1/auth', authRouter);
 
 export { app };

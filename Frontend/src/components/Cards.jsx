@@ -58,29 +58,38 @@ const Features = () => {
   const handleProviderListing = async (service) => {
   console.log("Selected service:", service);
 
-  // Get current location
   navigator.geolocation.getCurrentPosition(
     async (position) => {
       const lat = position.coords.latitude;
       const lng = position.coords.longitude;
 
-      toast
-        .promise(
-          axios.get("http://localhost:5000/api/v1/providers/getAllNearByProviders", {
-            params: { lat, lng, service },
-            withCredentials: true,
-          }),
-          {
-            loading: "Finding nearby providers...",
-            success: "Providers listed successfully!",
-            error: (err) =>
-              err?.response?.data?.message || "Failed to list providers. Try again.",
-          }
-        )
-        .then((res) => {
-          console.log("Nearby Providers:", res.data);
-         navigate("/Providers", { state: { providers: res.data } });
+      toast.loading("Finding nearby providers...");
+
+      try {
+        const res = await axios.get("http://localhost:5000/api/v1/providers/getAllNearByProviders", {
+          params: { lat, lng, service },
+          withCredentials: true,
         });
+
+        const providers = res.data;
+
+        if (!providers || providers.length === 0) {
+          toast.dismiss(); // remove loading
+          toast.error("No providers found for the selected service.");
+          return;
+        }
+
+        toast.dismiss(); // remove loading
+        toast.success("Providers listed successfully!");
+        console.log("Nearby Providers:", providers);
+        navigate("/Providers", { state: { providers } });
+      } catch (err) {
+        toast.dismiss(); // remove loading
+        toast.error(
+          err?.response?.data?.message || "Failed to list providers. Try again."
+        );
+        console.error("Error fetching providers:", err);
+      }
     },
     (error) => {
       toast.error("Location access denied or unavailable.");
@@ -88,7 +97,6 @@ const Features = () => {
     }
   );
 };
-
 
   return (
     <section className="flex flex-col items-center px-6 sm:px-10 pt-20 pb-12">

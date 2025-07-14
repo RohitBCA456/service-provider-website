@@ -7,17 +7,18 @@ import { createBrowserRouter, RouterProvider } from "react-router-dom";
 import CreateAccount from "./components/SignUp.jsx";
 import Login from "./components/Login.jsx";
 import ListProviders from "./pages/ListProviders.jsx";
+import ProviderHome from "./pages/ProviderHome.jsx";
 
 const router = createBrowserRouter([
   {
     path: "/",
     element: <App />,
     children: [
-      { index: true, element: <CreateAccount /> }, // This means path="/" renders Home
+      { index: true, element: <CreateAccount /> },
       { path: "Home", element: <Home /> },
+      { path: "ProviderHome", element: <ProviderHome />},
       { path: "Login", element: <Login /> },
       { path: "Providers", element: <ListProviders /> },
-      // { path: "contact", element: <Contact /> },
     ],
   },
 ]);

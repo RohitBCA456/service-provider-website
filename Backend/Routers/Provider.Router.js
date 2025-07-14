@@ -1,11 +1,11 @@
 import Router from "express";
-import { registerProvider, providerLogin, updateProviderProfile, getSingleProvider, getALLNearByProviders, logoutProvider } from "../Controllers/Provider.Controller.js";
+import { registerProvider, updateProviderProfile, getSingleProvider, getALLNearByProviders, logoutProvider } from "../Controllers/Provider.Controller.js";
 import { authMiddleware } from "../Middlewares/Auth.Middleware.js";
 
 const router = Router();
 
 router.route('/registerProvider').post(registerProvider);
-router.route('/loginProvider').post(providerLogin);
+// router.route('/loginProvider').post(providerLogin);
 router.route('/updateProvider').put(authMiddleware, updateProviderProfile);
 router.route('/getProvider/:id').get(getSingleProvider);
 router.route('/getAllNearByProviders').get(getALLNearByProviders);

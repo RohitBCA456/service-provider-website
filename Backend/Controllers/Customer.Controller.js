@@ -61,51 +61,51 @@ export const registerCustomer = async (req, res) => {
   }
 };
 
-export const customerLogin = async (req, res) => {
-  try {
-    const { email, password } = req.body;
+// export const customerLogin = async (req, res) => {
+//   try {
+//     const { email, password } = req.body;
 
-    if (!email || !password) {
-      return res
-        .status(400)
-        .json({ message: "Email and password are required" });
-    }
+//     if (!email || !password) {
+//       return res
+//         .status(400)
+//         .json({ message: "Email and password are required" });
+//     }
 
-    const user = await User.findOne({ email });
-    if (!user) {
-      return res.status(404).json({ message: "User not found" });
-    }
+//     const user = await User.findOne({ email });
+//     if (!user) {
+//       return res.status(404).json({ message: "User not found" });
+//     }
 
-    const isPasswordValid = await user.isCorrectPassword(password);
-    if (!isPasswordValid) {
-      return res.status(401).json({ message: "Invalid password" });
-    }
+//     const isPasswordValid = await user.isCorrectPassword(password);
+//     if (!isPasswordValid) {
+//       return res.status(401).json({ message: "Invalid password" });
+//     }
 
-    const token = user.generateAuthToken();
-    user.accessToken = token;
-    await user.save();
+//     const token = user.generateAuthToken();
+//     user.accessToken = token;
+//     await user.save();
 
-    const options = {
-      httpOnly: true,
-      secure: true,
-      sameSite: "None",
-      path: "/",
-    };
+//     const options = {
+//       httpOnly: true,
+//       secure: true,
+//       sameSite: "None",
+//       path: "/",
+//     };
 
-    return res
-      .status(200)
-      .cookie("accessToken", user.accessToken, options)
-      .json({
-        success: true,
-        message: "Login successful",
-      });
-  } catch (error) {
-    console.error("Error during customer login:", error);
-    return res.status(500).json({
-      message: "Internal server error during login",
-    });
-  }
-};
+//     return res
+//       .status(200)
+//       .cookie("accessToken", user.accessToken, options)
+//       .json({
+//         success: true,
+//         message: "Login successful",
+//       });
+//   } catch (error) {
+//     console.error("Error during customer login:", error);
+//     return res.status(500).json({
+//       message: "Internal server error during login",
+//     });
+//   }
+// };
 
 export const updateCustomerProfile = async (req, res) => {
   try {
