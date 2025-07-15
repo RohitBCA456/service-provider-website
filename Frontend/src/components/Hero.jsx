@@ -1,7 +1,23 @@
 import React, { useEffect, useState } from "react";
 
+const data = [
+  {
+    title: "Find Local Services Instantly",
+    description:
+      "Connect with trusted professionals near you. Book electricians, tutors, cleaners and more — all in one place.",
+  },
+  {
+    title: "Offer Your Services Locally",
+    description:
+      "Reach nearby customers looking for your skills. List your services, manage bookings, and grow your business easily.",
+  },
+];
+
 const HeroSection = () => {
 
+  const userRole = localStorage.getItem('Role');
+  const content = userRole === 'customer' ? data[0] : data[1];
+  
   return (
     <section className="relative overflow-hidden py-20 px-6 sm:px-10 lg:px-20">
       {/* Decorative SVG */}
@@ -34,12 +50,11 @@ const HeroSection = () => {
 
       {/* Hero Content */}
       <div className="relative z-10 max-w-4xl mx-auto text-center">
-        <h1 className= "text-4xl sm:text-5xl font-extrabold tracking-tight leading-tight">
-          Find Local Services Instantly
+        <h1 className="text-4xl sm:text-5xl font-extrabold tracking-tight leading-tight">
+          {content.title}
         </h1>
         <p className="mt-4 text-lg sm:text-xl max-w-2xl mx-auto">
-          Connect with trusted professionals near you. Book electricians,
-          tutors, cleaners and more — all in one place.
+          {content.description}
         </p>
 
         {/* Form */}
