@@ -35,6 +35,7 @@ const userSchema = new Schema(
     },
 
     servicesOffered: [String], // For providers only
+    Pricing: [Number],
     availability: { type: Boolean, default: true }, // For providers
     createdAt: { type: Date, default: Date.now },
 

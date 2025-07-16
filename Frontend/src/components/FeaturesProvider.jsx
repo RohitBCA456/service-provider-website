@@ -7,6 +7,7 @@ import {
   Bell,
 } from "lucide-react";
 import React from "react";
+import { useNavigate } from "react-router-dom";
 
 const features = [
   {
@@ -51,6 +52,12 @@ const features = [
 ];
 
 const Features = () => {
+
+  const navigate = useNavigate()
+  const handleNavigate = () => {
+    navigate('/Features')
+  }
+
   return (
     <div className="flex flex-col items-center h-full max-w-[1440px] pt-[88px] p-5">
       <div className="text-[48px] sm:text-[58px] font-bold text-center">
@@ -60,6 +67,7 @@ const Features = () => {
         {features.map((feature, index) => (
           <div
             key={index}
+            onClick={handleNavigate}
             className="rounded-2xl bg-[#F1F1F1] p-6 w-[358px] h-[282px] overflow-hidden shadow-sm
              hover:shadow-xl hover:scale-[1.03] active:scale-[0.98] 
             transition-transform duration-300 ease-in-out transform cursor-pointer"

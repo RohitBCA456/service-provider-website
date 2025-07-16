@@ -7,7 +7,7 @@ const router = Router();
 router.route('/registerProvider').post(registerProvider);
 // router.route('/loginProvider').post(providerLogin);
 router.route('/updateProvider').put(authMiddleware, updateProviderProfile);
-router.route('/getProvider/:id').get(getSingleProvider);
+router.route('/getProvider/:providerId').get(getSingleProvider);
 router.route('/getAllNearByProviders').get(getALLNearByProviders);
 router.route('/logoutProvider').get(authMiddleware, logoutProvider);
 

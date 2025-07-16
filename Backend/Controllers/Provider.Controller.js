@@ -168,13 +168,15 @@ export const getALLNearByProviders = async (req, res) => {
 
 export const getSingleProvider = async (req, res) => {
   try {
-    const provider = await User.findById(req.params.id);
+    const provider = await User.findById(req.params.providerId);
+
+    console.log(provider);
 
     if (!provider || provider.role !== "provider") {
       return res.status(404).json({ error: "Provider not found" });
     }
 
-    return res.json(provider);
+    return res.json({ provider }); // wrap in an object
   } catch (error) {
     return res
       .status(500)
@@ -191,7 +193,7 @@ export const updateProviderProfile = async (req, res) => {
     if (![name, servicesOffered, latitude, longitude, address]) {
       return res.status(400).json({ message: "All fields are required." });
     }
-    
+
     servicesOffered = servicesOffered.toLowerCase();
 
     const provider = await User.findById(req.user?.id);

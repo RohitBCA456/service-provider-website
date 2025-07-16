@@ -3,9 +3,8 @@ import { useLocation } from "react-router-dom";
 import ServiceCard from "../components/ListProvidersPage";
 
 function ListProviders() {
-          
   const location = useLocation();
-  const providers = location.state?.providers || []; 
+  const providers = location.state?.providers || [];
 
   return (
     <div className="px-4 py-6 space-y-6">
@@ -13,6 +12,7 @@ function ListProviders() {
         providers.map((provider) => (
           <ServiceCard
             key={provider._id}
+            providerId={provider._id}
             name={provider.name}
             image={
               provider.avatar ||

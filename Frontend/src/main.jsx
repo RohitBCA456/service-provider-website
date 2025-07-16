@@ -8,6 +8,8 @@ import CreateAccount from "./components/SignUp.jsx";
 import Login from "./components/Login.jsx";
 import ListProviders from "./pages/ListProviders.jsx";
 import ProviderHome from "./pages/ProviderHome.jsx";
+import TableList from "./pages/TableList.jsx";
+import ProfilePage from "./pages/ProfilePage.jsx";
 
 const router = createBrowserRouter([
   {
@@ -19,6 +21,8 @@ const router = createBrowserRouter([
       { path: "ProviderHome", element: <ProviderHome />},
       { path: "Login", element: <Login /> },
       { path: "Providers", element: <ListProviders /> },
+      { path: "/Features", element: <TableList />},
+      { path: "/Profile", element: <ProfilePage />}
     ],
   },
 ]);

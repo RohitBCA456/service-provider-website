@@ -1,4 +1,5 @@
 import React from "react";
+import { useNavigate } from "react-router-dom";
 
 // Haversine formula
 const calculateDistance = (lat1, lon1, lat2, lon2) => {
@@ -8,14 +9,13 @@ const calculateDistance = (lat1, lon1, lat2, lon2) => {
   const dLon = toRad(lon2 - lon1);
   const a =
     Math.sin(dLat / 2) ** 2 +
-    Math.cos(toRad(lat1)) *
-      Math.cos(toRad(lat2)) *
-      Math.sin(dLon / 2) ** 2;
+    Math.cos(toRad(lat1)) * Math.cos(toRad(lat2)) * Math.sin(dLon / 2) ** 2;
   const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
   return (R * c).toFixed(2);
 };
 
 const ServiceCard = ({
+  providerId,
   name,
   image,
   description,
@@ -24,14 +24,20 @@ const ServiceCard = ({
   providerCoords,
   userCoords,
 }) => {
-  const distance = userCoords && providerCoords
-    ? calculateDistance(
-        userCoords[1],
-        userCoords[0],
-        providerCoords[1],
-        providerCoords[0]
-      )
-    : "N/A";
+  const distance =
+    userCoords && providerCoords
+      ? calculateDistance(
+          userCoords[1],
+          userCoords[0],
+          providerCoords[1],
+          providerCoords[0]
+        )
+      : "N/A";
+
+  const navigate = useNavigate();
+  const handleNavigate = () => {
+    navigate("/Profile", { state: { providerId } }); // wrap inside object
+  };
 
   return (
     <section className="mx-auto antialiased">
@@ -52,7 +58,8 @@ const ServiceCard = ({
             <div className="sm:flex sm:justify-between">
               <div>
                 <div className="text-lg text-gray-700">
-                  <span className="text-gray-900 font-bold">{distance} km</span> from your location
+                  <span className="text-gray-900 font-bold">{distance} km</span>{" "}
+                  from your location
                 </div>
                 <div className="flex items-center">
                   <div className="flex">
@@ -74,12 +81,17 @@ const ServiceCard = ({
                   </div>
                 </div>
               </div>
-              <button className="mt-3 sm:mt-0 py-2 px-5 md:py-3 md:px-6 bg-purple-700 hover:bg-purple-600 font-bold text-white md:text-lg rounded-lg shadow-md">
+              <button
+                key={providerId}
+                onClick={handleNavigate}
+                className="mt-3 sm:mt-0 py-2 px-5 md:py-3 md:px-6 bg-purple-700 hover:bg-purple-600 font-bold text-white md:text-lg rounded-lg shadow-md"
+              >
                 Contact Now
               </button>
             </div>
             <div className="mt-3 text-gray-600 text-sm md:text-sm">
-              *Services: {servicesOffered.length > 0 ? servicesOffered.join(", ") : "None"}
+              *Services:{" "}
+              {servicesOffered.length > 0 ? servicesOffered.join(", ") : "None"}
             </div>
           </div>
         </div>

@@ -3,14 +3,15 @@ import { Outlet, useLocation } from "react-router-dom";
 import Header from "./components/Header";
 import Footer from "./components/Footer";
 import { Toaster } from "react-hot-toast";
+import ScrollToTop from "./components/ScrollToTop"; // 👈 adjust path as needed
 import "./App.css";
 
 function App() {
   const [theme, setTheme] = useState(localStorage.getItem("theme") || "light");
   const location = useLocation();
 
-  // Detect if current path is signup page
-  const hideLayout = location.pathname === "/" || location.pathname === "/login";
+  const hideLayout =
+    location.pathname === "/" || location.pathname === "/login" || location.pathname == "/Profile";
 
   useEffect(() => {
     document.body.className =
@@ -21,6 +22,7 @@ function App() {
   return (
     <>
       <Toaster position="top-center" reverseOrder={false} />
+      <ScrollToTop /> {/* ✅ This will scroll to top on route change */}
       <div className="min-h-screen transition-colors duration-300 flex flex-col">
         {!hideLayout && <Header theme={theme} setTheme={setTheme} />}
         <main className="flex-grow">
