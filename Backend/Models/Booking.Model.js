@@ -22,6 +22,16 @@ const bookingSchema = new Schema(
       ref: "User",
       required: true,
     },
+    timeSlot: {
+      date: {
+        type: String, // or Date if you want to convert later
+        required: true,
+      },
+      time: {
+        type: String, // e.g. "14:30"
+        required: true,
+      },
+    },
   },
   {
     timestamps: true,

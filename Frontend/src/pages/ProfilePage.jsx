@@ -54,7 +54,7 @@ const ProviderProfile = () => {
       const data = await res.json();
       if (!res.ok) throw new Error(data.message);
       toast.success("Booking Successfull");
-      navigate('/Home')
+      navigate("/Home");
     } catch (err) {
       toast.error(`Booking failed: ${err.message}`);
     }

@@ -7,56 +7,87 @@ import {
   Sliders,
   Bell,
 } from "lucide-react";
-import React from "react";
+import React, { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
-
-const features = [
-  {
-    icon: ClipboardList,
-    title: "View All Bookings",
-    status: "pending",
-    description:
-      "Easily manage and track all service requests from nearby customers.",
-    iconColor: "#0F0091",
-  },
-  {
-    icon: CheckCircle2,
-    title: "Accepted Appointments",
-    status: "accepted",
-    description: "Quickly access all your confirmed appointments in one place.",
-    iconColor: "#09C272",
-  },
-  {
-    icon: XCircle,
-    title: "Rejected Appointments",
-    status: "rejected",
-    description: "Review and analyze the appointments you've declined.",
-    iconColor: "#E85F00",
-  },
-  {
-    icon: PlusCircle,
-    title: "Add Services",
-    description: "Grow your business by listing more services you offer.",
-    iconColor: "#7E0AC4",
-  },
-  {
-    icon: Sliders,
-    title: "Manage Services",
-    description:
-      "Update, remove or adjust the pricing of your services anytime.",
-    iconColor: "#1267D4",
-  },
-  {
-    icon: Bell,
-    title: "Instant Notifications",
-    description:
-      "Get real-time alerts for bookings, confirmations and messages.",
-    iconColor: "#BF1495",
-  },
-];
 
 const Features = () => {
   const navigate = useNavigate();
+
+  const [bookingStats, setBookingStats] = useState({
+    total: 0,
+    pending: 0,
+    accepted: 0,
+    rejected: 0,
+  });
+
+  useEffect(() => {
+    const fetchBookingStats = async () => {
+      try {
+        const res = await axios.get(
+          "http://localhost:5000/api/v1/booking/getBookingStats",
+          {
+            withCredentials: true,
+          }
+        );
+        console.log(res.data);
+        setBookingStats(res.data); // assuming res.data is {pending, accepted, rejected, ...}
+      } catch (error) {
+        console.error("Error fetching booking stats:", error);
+      }
+    };
+
+    fetchBookingStats();
+  }, []);
+
+  const features = [
+    {
+      icon: ClipboardList,
+      title: "View All Bookings",
+      status: 'pending',
+      description:
+        "Easily manage and track all service requests from nearby customers.",
+      iconColor: "#0F0091",
+      total: bookingStats.pending,
+    },
+    {
+      icon: CheckCircle2,
+      title: "Accepted Appointments",
+      status: "accepted",
+      description:
+        "Quickly access all your confirmed appointments in one place.",
+      iconColor: "#09C272",
+      total: bookingStats.accepted,
+    },
+    {
+      icon: XCircle,
+      title: "Rejected Appointments",
+      status: "rejected",
+      description: "Review and analyze the appointments you've declined.",
+      iconColor: "#E85F00",
+      total: bookingStats.rejected,
+    },
+    {
+      icon: PlusCircle,
+      title: "Add Services",
+      description: "Grow your business by listing more services you offer.",
+      iconColor: "#7E0AC4",
+    },
+    {
+      icon: Sliders,
+      title: "Manage Services",
+      description:
+        "Update, remove or adjust the pricing of your services anytime.",
+      iconColor: "#1267D4",
+    },
+    {
+      icon: Bell,
+      title: "Instant Notifications",
+      description:
+        "Get real-time alerts for bookings, confirmations and messages.",
+      iconColor: "#BF1495",
+    },
+  ];
+
   const handleNavigate = (feature) => {
     if (feature.status) {
       navigate("/Features", { state: { status: feature.status } });
@@ -80,13 +111,15 @@ const Features = () => {
             <div className="flex items-center gap-4">
               <div className="bg-white w-16 h-16 rounded-xl flex items-center justify-center">
                 <feature.icon
-                  className={`w-8 h-8`}
+                  className="w-8 h-8"
                   style={{ color: feature.iconColor }}
                 />
               </div>
-              <div className="font-black text-[42px] text-[#E9E9E9]">
-                {index + 1}
-              </div>
+              {feature.total !== undefined && (
+                <div className="font-black text-[42px] text-[#E9E9E9]">
+                  {feature.total}
+                </div>
+              )}
             </div>
             <div className="text-[22px] font-semibold text-[#121212] mt-5">
               {feature.title}

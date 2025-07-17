@@ -18,7 +18,7 @@ class ErrorBoundary extends React.Component {
   render() {
     if (this.state.hasError) {
       return (
-        <div className="p-6 text-red-600">
+        <div className="p-6 text-red-600 text-2xl text-center mt-50">
           <h2 className="text-xl font-bold">Something went wrong 😢</h2>
           <pre className="mt-2 whitespace-pre-wrap">
             {this.state.error?.toString()}
