@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
 import axios from "axios";
+import toast from "react-hot-toast";
 
 const ProviderProfile = () => {
   const location = useLocation();
@@ -32,12 +33,31 @@ const ProviderProfile = () => {
     fetchProvider();
   }, [providerId]);
 
-  const handleBooking = () => {
-    if (!selectedService.trim()) {
-      alert("Please enter a service name to book.");
-      return;
+  const handleBooking = async (providerId, selectedService) => {
+    const servicesArray = selectedService
+      .split(",")
+      .map((s) => s.trim())
+      .filter((s) => s.length > 0);
+    try {
+      const res = await fetch(
+        "http://localhost:5000/api/v1/booking/bookProvider",
+        {
+          method: "POST",
+          credentials: "include",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({ providerId, services: servicesArray }),
+        }
+      );
+
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.message);
+      toast.success("Booking Successfull");
+      navigate('/Home')
+    } catch (err) {
+      toast.error(`Booking failed: ${err.message}`);
     }
-    alert(`Booking "${selectedService}" with ${provider?.name}`);
     setSelectedService("");
   };
 
@@ -88,7 +108,7 @@ const ProviderProfile = () => {
         </div>
 
         <div className="mt-10">
-          <h2 className="text-xl font-semibold mb-4 border-b pb-2 border-gray-300">
+          <h2 className="text-xl font-semibold mb-4 border-b pb-2 text-purple-500 border-gray-300">
             🛠 Services Offered
           </h2>
           {Array.isArray(provider.servicesOffered) &&
@@ -97,10 +117,10 @@ const ProviderProfile = () => {
               {provider.servicesOffered.map((service, i) => (
                 <li
                   key={i}
-                  className="bg-slate-50 border shadow-sm p-4 rounded-lg hover:shadow-md transition"
+                  className="bg-slate-50 border text-blue-400 shadow-sm p-4 rounded-lg hover:shadow-md transition"
                 >
                   <div className="font-semibold">{service}</div>
-                  <div className="text-sm text-gray-600">
+                  <div className="text-sm text-green-400">
                     ₹
                     {provider.Pricing && provider.Pricing[i]
                       ? provider.Pricing[i]
@@ -119,11 +139,12 @@ const ProviderProfile = () => {
             type="text"
             value={selectedService}
             onChange={(e) => setSelectedService(e.target.value)}
-            placeholder="Enter service name"
-            className="flex-1 px-4 py-2 border rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-purple-500"
+            placeholder="Enter services (comma-separated)"
+            className="flex-1 px-4 py-2 border rounded-lg shadow-sm text-gray-500 focus:outline-none focus:ring-2 focus:ring-purple-500"
           />
+
           <button
-            onClick={handleBooking}
+            onClick={() => handleBooking(providerId, selectedService)}
             className="bg-purple-600 hover:bg-purple-700 text-white px-6 py-2 rounded-lg shadow-lg transition-all text-sm font-semibold"
           >
             🚀 Book Now

@@ -1,3 +1,4 @@
+import { Booking } from "../Models/Booking.Model.js";
 import { User } from "../Models/User.Model.js";
 import { uploadOnCloudinary } from "../utilities/Cloudinary.utilities.js";
 import { deleteFromCloudinaryByUrl } from "../utilities/DeleteFromCloudinary.Utilities.js";
@@ -130,13 +131,25 @@ export const registerProvider = async (req, res) => {
 
 export const getALLNearByProviders = async (req, res) => {
   try {
-    let { lat, lng, service } = req.query;
+    const { lat, lng, service } = req.query;
 
     if (!lat || !lng) {
-      return res.status(400).json({
-        message: "Latitude and longitude are required",
-      });
+      return res.status(400).json({ message: "Latitude and longitude are required" });
     }
+
+    const customerId = req.user?.id;
+    if (!customerId) {
+      return res.status(401).json({ message: "Unauthorized: user ID missing" });
+    }
+
+    const activeBookings = await Booking.find({
+      customerId,
+      status: { $in: ["pending", "accepted"] },
+    }).select("providerId");
+
+    const bookedProviderIds = activeBookings
+      .filter((b) => b.providerId)
+      .map((b) => b.providerId.toString());
 
     const query = {
       role: "provider",
@@ -147,13 +160,24 @@ export const getALLNearByProviders = async (req, res) => {
             type: "Point",
             coordinates: [parseFloat(lng), parseFloat(lat)],
           },
-          $maxDistance: 10000, // 10km
+          $maxDistance: 10000,
         },
       },
     };
 
+    if (bookedProviderIds.length > 0) {
+      query._id = { $nin: bookedProviderIds };
+    }
+
     if (service && service.trim() !== "") {
-      query.servicesOffered = { $in: [service.toLowerCase()] };
+      const servicesArray = service
+        .split(",")
+        .map((s) => s.trim().toLowerCase())
+        .filter((s) => s.length > 0);
+
+      if (servicesArray.length > 0) {
+        query.servicesOffered = { $in: servicesArray };
+      }
     }
 
     const providers = await User.find(query);

@@ -7,7 +7,7 @@ const bookingSchema = new Schema(
       required: true,
       validate: [(val) => val.length > 0, "At least one service is required"],
     },
-    booking: {
+    status: {
       type: String,
       enum: ["accepted", "rejected", "pending"],
       default: "pending",
@@ -21,10 +21,6 @@ const bookingSchema = new Schema(
       type: mongoose.Types.ObjectId,
       ref: "User",
       required: true,
-    },
-    bookingCount: {
-      type: Number,
-      default: 0,
     },
   },
   {

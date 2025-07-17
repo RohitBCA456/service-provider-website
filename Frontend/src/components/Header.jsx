@@ -67,6 +67,7 @@ const handleSearch = () => {
               lng,
               service: searchService.trim(),
             },
+            withCredentials: true,
           });
 
           const providers = res.data;

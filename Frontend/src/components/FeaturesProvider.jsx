@@ -1,3 +1,4 @@
+import axios from "axios";
 import {
   ClipboardList,
   CheckCircle2,
@@ -13,6 +14,7 @@ const features = [
   {
     icon: ClipboardList,
     title: "View All Bookings",
+    status: "pending",
     description:
       "Easily manage and track all service requests from nearby customers.",
     iconColor: "#0F0091",
@@ -20,12 +22,14 @@ const features = [
   {
     icon: CheckCircle2,
     title: "Accepted Appointments",
+    status: "accepted",
     description: "Quickly access all your confirmed appointments in one place.",
     iconColor: "#09C272",
   },
   {
     icon: XCircle,
     title: "Rejected Appointments",
+    status: "rejected",
     description: "Review and analyze the appointments you've declined.",
     iconColor: "#E85F00",
   },
@@ -52,11 +56,12 @@ const features = [
 ];
 
 const Features = () => {
-
-  const navigate = useNavigate()
-  const handleNavigate = () => {
-    navigate('/Features')
-  }
+  const navigate = useNavigate();
+  const handleNavigate = (feature) => {
+    if (feature.status) {
+      navigate("/Features", { state: { status: feature.status } });
+    }
+  };
 
   return (
     <div className="flex flex-col items-center h-full max-w-[1440px] pt-[88px] p-5">
@@ -67,7 +72,7 @@ const Features = () => {
         {features.map((feature, index) => (
           <div
             key={index}
-            onClick={handleNavigate}
+            onClick={() => handleNavigate(feature)}
             className="rounded-2xl bg-[#F1F1F1] p-6 w-[358px] h-[282px] overflow-hidden shadow-sm
              hover:shadow-xl hover:scale-[1.03] active:scale-[0.98] 
             transition-transform duration-300 ease-in-out transform cursor-pointer"
