@@ -6,6 +6,8 @@ import customerRouter from "./Routers/Customer.Router.js";
 import providerRouter from "./Routers/Provider.Router.js";
 import bookingRouter from "./Routers/Booking.Router.js";
 import authRouter from "./Routers/Auth.Router.js";
+import http from "http";
+import { initSocket } from "./utilities/Socket.utility.js";
 
 dotenv.config({ path: "./.env" });
 
@@ -25,9 +27,14 @@ app.use(
   })
 );
 
+const server = http.createServer(app);
+
+initSocket(server);
+
+
 app.use("/api/v1/customers", customerRouter);
 app.use("/api/v1/providers", providerRouter);
 app.use("/api/v1/booking", bookingRouter);
 app.use("/api/v1/auth", authRouter);
 
-export { app };
+export { app, server };

@@ -1,30 +1,151 @@
 import React, { useState, useRef, useEffect } from "react";
+import { socket } from "../Socket.js";
+import { useLocation } from "react-router-dom";
 
 const ChatPage = () => {
-  const [messages, setMessages] = useState([
-    {
-      id: "1",
-      content: "Hey there! I'm your AI assistant. How can I help you today?",
-      sender: "bot",
-      timestamp: new Date(Date.now() - 300000),
-    },
-    {
-      id: "2",
-      content: "Hi! I'd like to know more about your capabilities.",
-      sender: "user",
-      timestamp: new Date(Date.now() - 240000),
-    },
-    {
-      id: "3",
-      content:
-        "I can assist with writing, questions, explanations, and more. What would you like to explore?",
-      sender: "bot",
-      timestamp: new Date(Date.now() - 180000),
-    },
-  ]);
+  const location = useLocation();
+  const targetUserId = location.state?.id;
+
+  const [currentUserId, setCurrentUserId] = useState(null);
+  const [messages, setMessages] = useState([]);
   const [inputValue, setInputValue] = useState("");
-  const [isTyping, setIsTyping] = useState(false);
+  const [userDetails, setUserDetails] = useState(null);
   const messagesEndRef = useRef(null);
+
+  // ✅ Fetch current user from backend
+  useEffect(() => {
+    const fetchCurrentUser = async () => {
+      try {
+        const res = await fetch(
+          "http://localhost:5000/api/v1/auth/getCurrentUser",
+          {
+            credentials: "include", // needed to send cookies
+          }
+        );
+        const data = await res.json();
+        if (data.success) {
+          setCurrentUserId(data.user.id);
+        } else {
+          console.error("Failed to fetch current user");
+        }
+      } catch (err) {
+        console.error("Error fetching current user:", err);
+      }
+    };
+
+    fetchCurrentUser();
+  }, []);
+
+  // ✅ Get consistent room ID once both IDs are available
+  const roomId =
+    currentUserId && targetUserId
+      ? [currentUserId, targetUserId].sort().join("-")
+      : null;
+
+  // ✅ Fetch receiver user info
+  useEffect(() => {
+    if (!targetUserId) return;
+
+    const fetchUserDetails = async () => {
+      try {
+        const res = await fetch(
+          `http://localhost:5000/api/v1/auth/getUserDetails/${targetUserId}`
+        );
+        const data = await res.json();
+        if (data.success) {
+          setUserDetails(data.user);
+        } else {
+          console.error("User fetch failed:", data.message);
+        }
+      } catch (err) {
+        console.error("Error fetching user details:", err);
+      }
+    };
+
+    fetchUserDetails();
+  }, [targetUserId]);
+
+  // ✅ Fetch old chat history
+  useEffect(() => {
+    if (!roomId) return;
+
+    const fetchMessages = async () => {
+      try {
+        const res = await fetch(
+          `http://localhost:5000/api/v1/auth/getChatHistory/${roomId}`
+        );
+        const data = await res.json();
+        if (data.success) {
+          const formatted = data.messages.map((msg) => ({
+            id: msg._id,
+            content: msg.message,
+            sender: msg.senderId === currentUserId ? "me" : "user",
+            timestamp: new Date(msg.createdAt),
+          }));
+          setMessages(formatted);
+        } else {
+          console.error("Failed to load chat history");
+        }
+      } catch (err) {
+        console.error("Error fetching chat history:", err);
+      }
+    };
+
+    fetchMessages();
+  }, [roomId, currentUserId]);
+
+  // ✅ Socket join and listener
+  useEffect(() => {
+    if (!currentUserId || !targetUserId) return;
+
+    socket.emit("join", currentUserId);
+
+    socket.on("receive-message", (data) => {
+      if (data.senderId === targetUserId) {
+        setMessages((prev) => [
+          ...prev,
+          {
+            id: Date.now().toString(),
+            content: data.message,
+            sender: "user",
+            timestamp: new Date(),
+          },
+        ]);
+      }
+    });
+
+    return () => {
+      socket.off("receive-message");
+    };
+  }, [currentUserId, targetUserId]);
+
+  // ✅ Send message via socket
+  const handleSendMessage = () => {
+    if (!inputValue.trim()) return;
+    if (!currentUserId || !targetUserId) {
+      console.warn("Missing sender or receiver ID");
+      return;
+    }
+
+    console.log("Message sending...");
+
+    const newMessage = {
+      id: Date.now().toString(),
+      content: inputValue,
+      sender: "me",
+      timestamp: new Date(),
+    };
+
+    setMessages((prev) => [...prev, newMessage]);
+
+    socket.emit("send-message", {
+      senderId: currentUserId,
+      receiverId: targetUserId,
+      message: inputValue,
+    });
+
+    setInputValue("");
+  };
 
   const scrollToBottom = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
@@ -33,32 +154,6 @@ const ChatPage = () => {
   useEffect(() => {
     scrollToBottom();
   }, [messages]);
-
-  const handleSendMessage = () => {
-    if (!inputValue.trim()) return;
-
-    const newMessage = {
-      id: Date.now().toString(),
-      content: inputValue,
-      sender: "user",
-      timestamp: new Date(),
-    };
-
-    setMessages((prev) => [...prev, newMessage]);
-    setInputValue("");
-    setIsTyping(true);
-
-    setTimeout(() => {
-      const botResponse = {
-        id: (Date.now() + 1).toString(),
-        content: "Thanks for your message! I'll get back to you shortly.",
-        sender: "bot",
-        timestamp: new Date(),
-      };
-      setMessages((prev) => [...prev, botResponse]);
-      setIsTyping(false);
-    }, 1500);
-  };
 
   const formatTime = (date) => {
     return date.toLocaleTimeString("en-US", {
@@ -69,8 +164,9 @@ const ChatPage = () => {
   };
 
   const renderAvatar = (sender) => {
-    const initials = sender === "user" ? "U" : "A";
-    const bg = sender === "user" ? "bg-purple-500" : "bg-blue-500";
+    const initials =
+      sender === "me" ? "Me" : userDetails?.name?.[0]?.toUpperCase() || "U";
+    const bg = sender === "me" ? "bg-purple-500" : "bg-blue-500";
     return (
       <div
         className={`h-8 w-8 rounded-full ${bg} text-white flex items-center justify-center font-bold`}
@@ -84,11 +180,21 @@ const ChatPage = () => {
     <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-100 flex flex-col">
       {/* Header */}
       <div className="sticky top-0 bg-white shadow-sm px-4 py-3 border-b flex items-center gap-3 z-10">
-        <div className="h-10 w-10 rounded-full bg-blue-500 text-white flex items-center justify-center font-bold">
-          A
-        </div>
+        {userDetails?.avatar ? (
+          <img
+            src={userDetails.avatar}
+            alt="User"
+            className="h-10 w-10 rounded-full object-cover"
+          />
+        ) : (
+          <div className="h-10 w-10 rounded-full bg-blue-500 text-white flex items-center justify-center font-bold">
+            {userDetails?.name?.[0]?.toUpperCase() || "U"}
+          </div>
+        )}
         <div>
-          <h2 className="text-lg font-semibold text-gray-800">AI Assistant</h2>
+          <h2 className="text-lg font-semibold text-gray-800">
+            {userDetails?.name || "Loading..."}
+          </h2>
           <p className="text-sm text-green-500 flex items-center gap-1">
             <span className="w-2 h-2 bg-green-500 rounded-full animate-ping" />
             Online
@@ -96,17 +202,19 @@ const ChatPage = () => {
         </div>
       </div>
 
-      {/* Scrollable Messages Area */}
+      {/* Messages */}
       <div className="flex-1 overflow-y-auto px-4 py-6 space-y-4">
         {messages.map((msg) => (
           <div
             key={msg.id}
-            className={`flex ${msg.sender === "user" ? "justify-end" : "justify-start"}`}
+            className={`flex ${
+              msg.sender === "me" ? "justify-end" : "justify-start"
+            }`}
           >
-            {msg.sender === "bot" && renderAvatar("bot")}
+            {msg.sender !== "me" && renderAvatar("user")}
             <div
               className={`max-w-xs sm:max-w-md p-3 rounded-lg text-sm shadow ${
-                msg.sender === "user"
+                msg.sender === "me"
                   ? "bg-gradient-to-r from-purple-500 to-indigo-600 text-white ml-auto"
                   : "bg-white border border-gray-200 text-gray-800"
               }`}
@@ -116,31 +224,13 @@ const ChatPage = () => {
                 {formatTime(msg.timestamp)}
               </p>
             </div>
-            {msg.sender === "user" && renderAvatar("user")}
+            {msg.sender === "me" && renderAvatar("me")}
           </div>
         ))}
-
-        {isTyping && (
-          <div className="flex items-center gap-2">
-            {renderAvatar("bot")}
-            <div className="bg-white border px-3 py-2 rounded-lg shadow flex gap-1">
-              <div className="w-2 h-2 bg-gray-400 rounded-full animate-bounce" />
-              <div
-                className="w-2 h-2 bg-gray-400 rounded-full animate-bounce"
-                style={{ animationDelay: "0.1s" }}
-              />
-              <div
-                className="w-2 h-2 bg-gray-400 rounded-full animate-bounce"
-                style={{ animationDelay: "0.2s" }}
-              />
-            </div>
-          </div>
-        )}
-
         <div ref={messagesEndRef} />
       </div>
 
-      {/* Sticky Input Area */}
+      {/* Input */}
       <div className="sticky bottom-0 bg-white border-t p-4 z-10">
         <div className="flex items-center gap-3">
           <input
@@ -158,7 +248,7 @@ const ChatPage = () => {
           />
           <button
             onClick={handleSendMessage}
-            disabled={!inputValue.trim() || isTyping}
+            disabled={!inputValue.trim()}
             className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-full transition disabled:opacity-50"
           >
             Send

@@ -104,7 +104,11 @@ const StackListActionMenu = () => {
                   </td>
                   <td className="px-4 py-3">
                     <button
-                      onClick={() => navigate(`/ChatRoom/${user.id}`)}
+                      onClick={() =>
+                        navigate(`/ChatRoom/${user.id}`, {
+                          state: { id: user.id },
+                        })
+                      }
                       className={`px-4 py-1.5 rounded-full text-sm font-medium shadow-sm transition ${
                         booking.status === "pending"
                           ? "bg-yellow-500 hover:bg-yellow-600 text-white"
