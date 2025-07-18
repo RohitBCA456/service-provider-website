@@ -1,8 +1,15 @@
 import { useEffect, useRef, useState } from "react";
 import { Star, MapPin } from "lucide-react";
+import axios from "axios";
 
 // Marquee component (unchanged)
-const Marquee = ({ children, direction = "left", speed = 50, pauseOnHover = true, className = "" }) => {
+const Marquee = ({
+  children,
+  direction = "left",
+  speed = 50,
+  pauseOnHover = true,
+  className = "",
+}) => {
   const [contentWidth, setContentWidth] = useState(0);
   const contentRef = useRef(null);
   const [isPaused, setIsPaused] = useState(false);
@@ -22,7 +29,9 @@ const Marquee = ({ children, direction = "left", speed = 50, pauseOnHover = true
       <div
         className={`flex min-w-full gap-4 animate-scroll`}
         style={{
-          animation: `scroll-${direction} ${contentWidth / speed}s linear infinite`,
+          animation: `scroll-${direction} ${
+            contentWidth / speed
+          }s linear infinite`,
           animationPlayState: isPaused ? "paused" : "running",
         }}
       >
@@ -53,17 +62,25 @@ const ProviderCard = ({ avatar, name, rating, services, location }) => (
   <div className="w-80 p-5 bg-white dark:bg-zinc-900 rounded-xl border border-border shadow-md hover:shadow-xl hover:scale-105 transition-transform duration-300 ease-in-out cursor-pointer">
     <div className="flex items-center gap-4 mb-3">
       <img
-        src={avatar || "https://api.dicebear.com/7.x/avataaars/svg?seed=default"}
+        src={
+          avatar || "https://api.dicebear.com/7.x/avataaars/svg?seed=default"
+        }
         alt={name}
         className="w-12 h-12 rounded-full object-cover border"
       />
       <div>
-        <h3 className="font-semibold text-lg text-gray-800 dark:text-white">{name}</h3>
+        <h3 className="font-semibold text-lg text-gray-800 dark:text-white">
+          {name}
+        </h3>
         <div className="flex gap-1">
           {Array.from({ length: 5 }).map((_, i) => (
             <Star
               key={i}
-              className={`w-4 h-4 ${i < rating ? "text-yellow-400 fill-yellow-400" : "text-gray-300 dark:text-gray-600"}`}
+              className={`w-4 h-4 ${
+                i < rating
+                  ? "text-yellow-400 fill-yellow-400"
+                  : "text-gray-300 dark:text-gray-600"
+              }`}
             />
           ))}
         </div>
@@ -113,8 +130,10 @@ export default function MarqueeProviderDemo() {
 
       try {
         const url = `http://localhost:5000/api/v1/providers/getAllNearByProviders?lat=${coords.lat}&lng=${coords.lng}&service=${service}`;
-        const res = await fetch(url);
-        const data = await res.json();
+        const res = await axios.get(url, {
+          withCredentials: true,
+        });
+        const data = res.data;
         setProviders(data);
       } catch (error) {
         console.error("Error fetching providers:", error);
@@ -131,12 +150,12 @@ export default function MarqueeProviderDemo() {
         Trusted Local Service Providers
       </h2>
 
-      {error && (
-        <p className="text-red-500 text-center mb-4">{error}</p>
-      )}
+      {error && <p className="text-red-500 text-center mb-4">{error}</p>}
 
       {!coords ? (
-        <p className="text-center text-gray-500 dark:text-gray-300">Fetching your location...</p>
+        <p className="text-center text-gray-500 dark:text-gray-300">
+          Fetching your location...
+        </p>
       ) : providers.length > 0 ? (
         <Marquee direction="left" className="py-4 px-6" speed={40}>
           {providers.map((provider) => (
@@ -151,7 +170,9 @@ export default function MarqueeProviderDemo() {
           ))}
         </Marquee>
       ) : (
-        <p className="text-gray-500 dark:text-gray-300 text-center w-full mt-4">No nearby providers found.</p>
+        <p className="text-gray-500 dark:text-gray-300 text-center w-full mt-4">
+          No nearby providers found.
+        </p>
       )}
     </div>
   );

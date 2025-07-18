@@ -9,12 +9,29 @@ const TableList = () => {
   const [editingRow, setEditingRow] = useState(null);
   const [selectedDate, setSelectedDate] = useState("");
   const [selectedTime, setSelectedTime] = useState("");
+  const [role, setRole] = useState(null);
+  const [completedChecks, setCompletedChecks] = useState({});
+  const [ratedBookings, setRatedBookings] = useState({});
 
   const location = useLocation();
   const status = location.state?.status;
 
   const defaultAvatar =
     "https://i.pinimg.com/474x/07/c4/72/07c4720d19a9e9edad9d0e939eca304a.jpg";
+
+  const fetchUserRole = async () => {
+    try {
+      const response = await axios.get(
+        "http://localhost:5000/api/v1/auth/fetchUserRole",
+        { withCredentials: true }
+      );
+      if (response.data.success) {
+        setRole(response.data.userRole);
+      }
+    } catch (error) {
+      console.log(`Error occured while fetching user role ${error.message}`);
+    }
+  };
 
   const fetchBookings = async () => {
     try {
@@ -34,6 +51,7 @@ const TableList = () => {
   };
 
   useEffect(() => {
+    fetchUserRole();
     fetchBookings();
   }, [status]);
 
@@ -59,7 +77,7 @@ const TableList = () => {
       setEditingRow(null);
       setSelectedDate("");
       setSelectedTime("");
-      toast.success('Approved')
+      toast.success("Approved");
       fetchBookings();
     } catch (error) {
       console.error("Error accepting booking:", error);
@@ -79,7 +97,58 @@ const TableList = () => {
     }
   };
 
+  const handleComplete = async (e, bookingId) => {
+    const confirmComplete = window.confirm(
+      "Are you sure you want to mark this as complete?"
+    );
+
+    if (!confirmComplete) {
+      // Reset checkbox to unchecked if cancelled
+      setCompletedChecks((prev) => ({
+        ...prev,
+        [bookingId]: false,
+      }));
+      return;
+    }
+
+    try {
+      await axios.put(
+        `http://localhost:5000/api/v1/booking/updateStatus/${bookingId}`,
+        { status: "completed" },
+        { withCredentials: true }
+      );
+      toast.success("Appointment Completed");
+
+      setCompletedChecks((prev) => ({
+        ...prev,
+        [bookingId]: true,
+      }));
+
+      fetchBookings();
+    } catch (error) {
+      console.error("Error marking complete:", error);
+      toast.error("Failed to mark as completed");
+    }
+  };
+
+  const handleRating = async (bookingId, ratingValue) => {
+    try {
+      await axios.post(
+        "http://localhost:5000/api/v1/booking/submitRating",
+        { bookingId, rating: ratingValue },
+        { withCredentials: true }
+      );
+      toast.success("Thank you for rating!");
+      await fetchBookings(); // refetch updated data from backend
+    } catch (error) {
+      toast.error("Failed to submit rating.");
+      console.error("Rating error:", error);
+    }
+  };
+
   const renderButtons = (bookingId, idx) => {
+    if (role !== "provider") return null;
+
     if (editingRow === idx) {
       return (
         <div className="flex flex-col gap-2 p-3 bg-white rounded-xl shadow-md w-72">
@@ -134,9 +203,7 @@ const TableList = () => {
       {loading ? (
         <p className="text-white text-3xl text-center mt-20">Loading...</p>
       ) : data.length === 0 ? (
-        <p className="text-3xl text-center mt-20">
-          No bookings found.
-        </p>
+        <p className="text-3xl text-center mt-20">No bookings found.</p>
       ) : (
         <table className="w-full text-left border-collapse">
           <thead>
@@ -144,80 +211,121 @@ const TableList = () => {
               <th className="p-3">User</th>
               <th className="p-3 hidden md:table-cell">Service(s)</th>
               <th className="p-3 hidden md:table-cell">Email</th>
-              {status === "accepted" && <th className="p-3">TimeSlot</th>}
+              <th className="p-3">TimeSlot</th>
               <th className="p-3">Status</th>
-              {status === "pending" && <th className="p-3">Actions</th>}
+              {status === "completed" && role === "customer" && (
+                <th className="p-3">Rate</th>
+              )}
+              {status === "accepted" && role === "provider" && (
+                <th className="p-3">Complete</th>
+              )}
+              {status === "pending" && role === "provider" && (
+                <th className="p-3">Actions</th>
+              )}
+              {role === "customer" && <th className="p-3">Rating</th>}
             </tr>
           </thead>
           <tbody>
-            {data.map((booking, idx) => {
-              console.log("🔍 Booking:", booking);
-              return (
-                <tr key={idx} className="border-b border-white/10 align-middle">
-                  <td className="p-3">
-                    <div className="flex items-center gap-3">
-                      <img
-                        src={booking.user?.avatar || defaultAvatar}
-                        alt="avatar"
-                        onError={(e) => (e.target.src = defaultAvatar)}
-                        className="w-10 h-10 rounded-full object-cover"
-                      />
-                      <span>{booking.user?.name || "User"}</span>
+            {data.map((booking, idx) => (
+              <tr key={idx} className="border-b border-white/10 align-middle">
+                <td className="p-3">
+                  <div className="flex items-center gap-3">
+                    <img
+                      src={booking.user?.avatar || defaultAvatar}
+                      alt="avatar"
+                      onError={(e) => (e.target.src = defaultAvatar)}
+                      className="w-10 h-10 rounded-full object-cover"
+                    />
+                    <span>{booking.user?.name || "User"}</span>
+                  </div>
+                </td>
+                <td className="p-3 hidden md:table-cell align-middle">
+                  {(booking.services || []).join(", ")}
+                </td>
+                <td className="p-3 hidden md:table-cell align-middle">
+                  {booking.user?.email || "N/A"}
+                </td>
+                <td className="p-3 align-middle">
+                  {booking.timeSlot?.date && booking.timeSlot?.time ? (
+                    <div className="text-sm text-green-600 font-medium">
+                      {new Date(
+                        `${booking.timeSlot.date}T${booking.timeSlot.time}`
+                      ).toLocaleString([], {
+                        hour: "2-digit",
+                        minute: "2-digit",
+                        hour12: true,
+                        day: "2-digit",
+                        month: "short",
+                        year: "numeric",
+                      })}
                     </div>
-                  </td>
-                  <td className="p-3 hidden md:table-cell align-middle">
-                    {(booking.services || []).join(", ")}
-                  </td>
-                  <td className="p-3 hidden md:table-cell align-middle">
-                    {booking.user?.email || "N/A"}
-                  </td>
+                  ) : (
+                    <span className="text-xs text-red-400 italic">
+                      No slot assigned
+                    </span>
+                  )}
+                </td>
+                <td className="p-3 align-middle">
+                  <span
+                    className={`inline-block px-2 py-1 rounded-full text-xs capitalize ${
+                      booking.status === "accepted"
+                        ? "bg-green-500"
+                        : booking.status === "rejected"
+                        ? "bg-red-500"
+                        : booking.status === "completed"
+                        ? "bg-blue-500"
+                        : "bg-yellow-500"
+                    }`}
+                  >
+                    {booking.status}
+                  </span>
+                </td>
 
-                  {/* TimeSlot shown in separate column if accepted */}
-                  {status === "accepted" && (
-                    <td className="p-3 align-middle">
-                      {booking.timeSlot?.date && booking.timeSlot?.time ? (
-                        <div className="text-sm text-green-600 font-medium">
-                          {new Date(
-                            `${booking.timeSlot.date}T${booking.timeSlot.time}`
-                          ).toLocaleString([], {
-                            hour: "2-digit",
-                            minute: "2-digit",
-                            hour12: true,
-                            day: "2-digit",
-                            month: "short",
-                            year: "numeric",
-                          })}
-                        </div>
-                      ) : (
-                        <span className="text-xs text-red-400 italic">
-                          No slot assigned
+                {booking.status === "completed" && role === "customer" && (
+                  <td className="p-3 align-middle">
+                    <div className="flex items-center gap-1">
+                      {[1, 2, 3, 4, 5].map((n) => (
+                        <button
+                          key={n}
+                          type="button"
+                          onClick={() => handleRating(booking.bookingId, n)}
+                          disabled={!!booking.rating}
+                          className={`text-xl transition-colors duration-200 ${
+                            booking.rating >= n
+                              ? "text-yellow-400"
+                              : "text-gray-300"
+                          } ${!booking.rating ? "hover:text-yellow-500" : ""}`}
+                        >
+                          ★
+                        </button>
+                      ))}
+                      {booking.rating && (
+                        <span className="ml-2 text-green-500 text-sm font-medium mt-1">
+                          Rated ({booking.rating})
                         </span>
                       )}
-                    </td>
-                  )}
-
-                  <td className="p-3 align-middle">
-                    <span
-                      className={`inline-block px-2 py-1 rounded-full text-xs capitalize ${
-                        booking.status === "accepted"
-                          ? "bg-green-500"
-                          : booking.status === "rejected"
-                          ? "bg-red-500"
-                          : "bg-yellow-500"
-                      }`}
-                    >
-                      {booking.status}
-                    </span>
+                    </div>
                   </td>
+                )}
 
-                  {status === "pending" && (
-                    <td className="p-3 align-middle">
-                      {renderButtons(booking.bookingId, idx)}
-                    </td>
-                  )}
-                </tr>
-              );
-            })}
+                {status === "accepted" && role === "provider" && (
+                  <td className="p-3 text-center">
+                    <input
+                      type="checkbox"
+                      checked={!!completedChecks[booking.bookingId]}
+                      onChange={(e) => handleComplete(e, booking.bookingId)}
+                      className="w-4 h-4 mr-10 accent-green-500 cursor-pointer"
+                    />
+                  </td>
+                )}
+
+                {status === "pending" && role === "provider" && (
+                  <td className="p-3 align-middle">
+                    {renderButtons(booking.bookingId, idx)}
+                  </td>
+                )}
+              </tr>
+            ))}
           </tbody>
         </table>
       )}

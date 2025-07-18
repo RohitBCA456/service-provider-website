@@ -32,75 +32,84 @@ const ServiceFinderHeader = ({ theme, setTheme }) => {
   };
 
   const handleLogout = async () => {
-    toast.promise(
-      axios.get("http://localhost:5000/api/v1/providers/logoutProvider", {
-        withCredentials: true,
-      }),
-      {
-        loading: "Logging out...",
-        success: "Logout successful!",
-        error: "Logout failed. Please try again.",
-      }
-    ).then(() => {
-      navigate("/login");
-    });
+    toast
+      .promise(
+        axios.get("http://localhost:5000/api/v1/providers/logoutProvider", {
+          withCredentials: true,
+        }),
+        {
+          loading: "Logging out...",
+          success: "Logout successful!",
+          error: "Logout failed. Please try again.",
+        }
+      )
+      .then(() => {
+        navigate("/login");
+      });
   };
 
-  const userRole = localStorage.getItem('Role')
+  const userRole = localStorage.getItem("Role");
 
-const handleSearch = () => {
-  if (!searchService.trim()) {
-    toast.error("Please enter a service to search.");
-    return;
-  }
-
-  navigator.geolocation.getCurrentPosition(
-    async (position) => {
-      const lat = position.coords.latitude;
-      const lng = position.coords.longitude;
-
-      toast.promise(
-        (async () => {
-          const res = await axios.get("http://localhost:5000/api/v1/providers/getAllNearByProviders", {
-            params: {
-              lat,
-              lng,
-              service: searchService.trim(),
-            },
-            withCredentials: true,
-          });
-
-          const providers = res.data;
-
-          console.log("Lat:", lat, "Lng:", lng, "Service:", searchService);
-          console.log("Found providers:", providers);
-
-          if (providers.length === 0) {
-            throw new Error("No providers found near you.");
-          }
-
-          setSearchService("");
-
-          navigate("/Providers", {
-            state: { providers },
-          });
-
-          return "Providers fetched successfully!";
-        })(),
-        {
-          loading: "Searching nearby providers...",
-          success: (msg) => msg,
-          error: (err) =>
-            err?.message || "Failed to fetch providers. Try again.",
-        }
-      );
-    },
-    (error) => {
-      console.error("Geolocation error:", error);
-      toast.error("Location access denied or unavailable.");
+  const handleSearch = () => {
+    if (!searchService.trim()) {
+      toast.error("Please enter a service to search.");
+      return;
     }
-  );
-};
+
+    navigator.geolocation.getCurrentPosition(
+      async (position) => {
+        const lat = position.coords.latitude;
+        const lng = position.coords.longitude;
+
+        toast.promise(
+          (async () => {
+            const res = await axios.get(
+              "http://localhost:5000/api/v1/providers/getAllNearByProviders",
+              {
+                params: {
+                  lat,
+                  lng,
+                  service: searchService.trim(),
+                },
+                withCredentials: true,
+              }
+            );
+
+            const providers = res.data;
+
+            console.log("Lat:", lat, "Lng:", lng, "Service:", searchService);
+            console.log("Found providers:", providers);
+
+            if (providers.length === 0) {
+              throw new Error("No providers found near you.");
+            }
+
+            setSearchService("");
+
+            navigate("/Providers", {
+              state: { providers },
+            });
+
+            return "Providers fetched successfully!";
+          })(),
+          {
+            loading: "Searching nearby providers...",
+            success: (msg) => msg,
+            error: (err) =>
+              err?.message || "Failed to fetch providers. Try again.",
+          }
+        );
+      },
+      (error) => {
+        console.error("Geolocation error:", error);
+        toast.error("Location access denied or unavailable.");
+      }
+    );
+  };
+
+  const handleNavigate = () => {
+    navigate("/Features");
+  };
 
   return (
     <nav className="w-full bg-white dark:bg-zinc-900 text-zinc-800 dark:text-white shadow-md sticky top-0 z-50 transition-all duration-300">
@@ -118,26 +127,29 @@ const handleSearch = () => {
         </div>
 
         {/* Search Bar */}
-       {userRole !== 'provider' && (
+        {userRole !== "provider" && (
           <div className="hidden md:flex items-center bg-gray-100 dark:bg-zinc-800 border border-gray-300 dark:border-zinc-700 rounded-full px-4 py-2 max-w-md w-full mx-4">
-          <input
-            type="text"
-            value={searchService}
-            onChange={(e) => setSearchService(e.target.value)}
-            placeholder="Search for services..."
-            className="flex-1 bg-transparent text-sm md:text-base text-zinc-700 dark:text-zinc-100 placeholder-gray-400 dark:placeholder-gray-500 outline-none px-2"
-          />
-          <button
-            onClick={handleSearch}
-            className="bg-blue-600 hover:bg-blue-700 text-white w-8 h-8 rounded-full flex items-center justify-center transition-all duration-200"
-          >
-            <MagnifyingGlassIcon className="w-4 h-4" />
-          </button>
-        </div>
-       )}
+            <input
+              type="text"
+              value={searchService}
+              onChange={(e) => setSearchService(e.target.value)}
+              placeholder="Search for services..."
+              className="flex-1 bg-transparent text-sm md:text-base text-zinc-700 dark:text-zinc-100 placeholder-gray-400 dark:placeholder-gray-500 outline-none px-2"
+            />
+            <button
+              onClick={handleSearch}
+              className="bg-blue-600 hover:bg-blue-700 text-white w-8 h-8 rounded-full flex items-center justify-center transition-all duration-200"
+            >
+              <MagnifyingGlassIcon className="w-4 h-4" />
+            </button>
+          </div>
+        )}
 
         {/* Right Actions */}
-        <div className="relative flex items-center gap-2 md:gap-4" ref={dropdownRef}>
+        <div
+          className="relative flex items-center gap-2 md:gap-4"
+          ref={dropdownRef}
+        >
           {/* Theme Toggle */}
           <button
             onClick={toggleTheme}
@@ -156,7 +168,12 @@ const handleSearch = () => {
             <span className="text-sm md:text-base cursor-pointer hover:text-blue-600 transition-colors">
               For {userRole}
             </span>
-            <GlobeIcon className="w-5 h-5 cursor-pointer hover:scale-110" />
+            {userRole !== "provider" && (
+              <GlobeIcon
+                onClick={handleNavigate}
+                className="w-5 h-5 cursor-pointer hover:scale-110"
+              />
+            )}
           </div>
 
           {/* Dropdown Trigger */}
@@ -186,25 +203,25 @@ const handleSearch = () => {
       </div>
 
       {/* Mobile Search */}
-     {userRole !== 'provider' && (
-       <div className="md:hidden px-4 pb-4">
-        <div className="flex items-center bg-gray-100 dark:bg-zinc-800 border border-gray-300 dark:border-zinc-700 rounded-full px-4 py-2 w-full">
-          <input
-            type="text"
-            value={searchService}
-            onChange={(e) => setSearchService(e.target.value)}
-            placeholder="Search services..."
-            className="flex-1 bg-transparent text-sm text-zinc-700 dark:text-zinc-100 placeholder-gray-400 dark:placeholder-gray-500 outline-none px-2"
-          />
-          <button
-            onClick={handleSearch}
-            className="bg-blue-600 hover:bg-blue-700 text-white w-8 h-8 rounded-full flex items-center justify-center"
-          >
-            <MagnifyingGlassIcon className="w-4 h-4" />
-          </button>
+      {userRole !== "provider" && (
+        <div className="md:hidden px-4 pb-4">
+          <div className="flex items-center bg-gray-100 dark:bg-zinc-800 border border-gray-300 dark:border-zinc-700 rounded-full px-4 py-2 w-full">
+            <input
+              type="text"
+              value={searchService}
+              onChange={(e) => setSearchService(e.target.value)}
+              placeholder="Search services..."
+              className="flex-1 bg-transparent text-sm text-zinc-700 dark:text-zinc-100 placeholder-gray-400 dark:placeholder-gray-500 outline-none px-2"
+            />
+            <button
+              onClick={handleSearch}
+              className="bg-blue-600 hover:bg-blue-700 text-white w-8 h-8 rounded-full flex items-center justify-center"
+            >
+              <MagnifyingGlassIcon className="w-4 h-4" />
+            </button>
+          </div>
         </div>
-      </div>
-     )}
+      )}
     </nav>
   );
 };

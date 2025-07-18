@@ -153,7 +153,6 @@ export const getALLNearByProviders = async (req, res) => {
 
     const query = {
       role: "provider",
-      availability: true,
       location: {
         $near: {
           $geometry: {

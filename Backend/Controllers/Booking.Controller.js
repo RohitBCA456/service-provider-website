@@ -48,17 +48,15 @@ export const getBookingStatus = async (req, res) => {
     const userId = req.user?.id;
     const role = req.user?.role;
 
-    if (!status) {
-      return res.status(400).json({ message: "Status is required" });
-    }
-
     if (!userId || !role) {
       return res.status(401).json({ message: "Unauthorized" });
     }
 
-    const filter = {
-      status: status.toLowerCase(),
-    };
+    const filter = {};
+
+    if (status) {
+      filter.status = status.toLowerCase();
+    }
 
     if (role === "customer") {
       filter.customerId = userId;
@@ -96,7 +94,8 @@ export const getBookingStatus = async (req, res) => {
         bookingId: booking._id,
         status: booking.status,
         services: booking.serviceName,
-        timeSlot: booking.timeSlot || null, // ✅ INCLUDE TIME SLOT
+        timeSlot: booking.timeSlot || null,
+        rating: booking.rating || null,
         user: {
           id: targetId,
           avatar: userData.avatar || null,
@@ -147,6 +146,11 @@ export const getBookingStats = async (req, res) => {
 export const updateStatus = async (req, res) => {
   try {
     const { status, timeSlot } = req.body;
+
+    const user = await User.findById(req.user?.id);
+    user.availability = !status || status === "completed";
+    await user.save({ validateBeforeSave: false });
+
     const updated = await Booking.findByIdAndUpdate(
       req.params.id,
       { status, timeSlot },
@@ -155,5 +159,60 @@ export const updateStatus = async (req, res) => {
     res.status(200).json(updated);
   } catch (err) {
     res.status(500).json({ message: "Update failed" });
+  }
+};
+
+export const submitRating = async (req, res) => {
+  try {
+    const { bookingId, rating } = req.body;
+
+    if (!bookingId || !rating)
+      return res
+        .status(400)
+        .json({ message: "Booking ID and rating required" });
+
+    // 1. Fetch the booking
+    const booking = await Booking.findById(bookingId);
+    if (!booking) return res.status(404).json({ message: "Booking not found" });
+
+    if (booking.status !== "completed")
+      return res
+        .status(400)
+        .json({ message: "Can only rate completed appointments" });
+
+    if (booking.rating) {
+      return res.status(400).json({ message: "Booking already rated" });
+    }
+
+    // 2. Save rating inside booking
+    booking.rating = parseFloat(rating);
+    await booking.save();
+
+    // 3. Update provider rating in User model
+    const provider = await User.findById(booking.providerId);
+    if (!provider)
+      return res.status(404).json({ message: "Provider not found" });
+
+    const currentRating = provider.rating || 0;
+    const currentReviewCount = provider.review || 0;
+
+    const newReviewCount = currentReviewCount + 1;
+    const newRating =
+      (currentRating * currentReviewCount + parseFloat(rating)) /
+      newReviewCount;
+
+    provider.rating = parseFloat(newRating.toFixed(1));
+    provider.review = newReviewCount;
+    await provider.save();
+
+    return res.status(200).json({
+      message: "Rating submitted successfully",
+      bookingRating: booking.rating,
+      providerNewAverage: newRating.toFixed(1),
+      totalReviews: newReviewCount,
+    });
+  } catch (err) {
+    console.error("Rating Error:", err);
+    res.status(500).json({ message: "Internal Server Error" });
   }
 };

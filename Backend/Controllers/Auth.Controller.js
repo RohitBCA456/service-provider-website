@@ -26,7 +26,7 @@ export const Login = async (req, res) => {
 
     const user_data = {
       userRole: user.role,
-    }
+    };
 
     const options = {
       httpOnly: true,
@@ -46,4 +46,19 @@ export const Login = async (req, res) => {
       message: "Internal server error while logging in the provider.",
     });
   }
+};
+
+export const fetchUserRole = async (req, res) => {
+  const userRole = req.user?.role;
+  if (!userRole) {
+    return res.status(404).json({
+      success: false,
+      message: "User Role Not Found.",
+    });
+  }
+  return res.status(200).json({
+    success: true,
+    message: "User Role Fetched Successfully",
+    userRole,
+  });
 };

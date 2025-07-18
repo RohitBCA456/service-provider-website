@@ -19,6 +19,7 @@ const ServiceCard = ({
   name,
   image,
   description,
+  rating = 0,
   reviews = 0,
   servicesOffered = [],
   providerCoords,
@@ -67,7 +68,7 @@ const ServiceCard = ({
                       <svg
                         key={index}
                         className={`w-4 h-4 mx-px fill-current ${
-                          index < reviews ? "text-green-600" : "text-gray-300"
+                          index < rating ? "text-green-600" : "text-gray-300"
                         }`}
                         xmlns="http://www.w3.org/2000/svg"
                         viewBox="0 0 14 14"

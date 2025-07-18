@@ -9,7 +9,7 @@ const bookingSchema = new Schema(
     },
     status: {
       type: String,
-      enum: ["accepted", "rejected", "pending"],
+      enum: ["accepted", "rejected", "pending", "completed"],
       default: "pending",
     },
     customerId: {
@@ -25,12 +25,16 @@ const bookingSchema = new Schema(
     timeSlot: {
       date: {
         type: String, // or Date if you want to convert later
-        required: true,
       },
       time: {
         type: String, // e.g. "14:30"
-        required: true,
       },
+    },
+    rating: {
+      type: Number,
+      min: 1,
+      max: 5,
+      default: null,
     },
   },
   {

@@ -6,6 +6,8 @@ function ListProviders() {
   const location = useLocation();
   const providers = location.state?.providers || [];
 
+  console.log(providers)
+
   return (
     <div className="px-4 py-6 space-y-6">
       {providers && providers.length > 0 ? (
@@ -19,7 +21,8 @@ function ListProviders() {
               "https://i.pinimg.com/474x/07/c4/72/07c4720d19a9e9edad9d0e939eca304a.jpg"
             }
             description={provider.location?.address || "No address provided"}
-            reviews={provider.rating || 0}
+            rating={provider.rating || 0}
+            reviews={provider.review || null}
             servicesOffered={provider.servicesOffered}
             providerCoords={provider.location?.coordinates}
             userCoords={[91.7635072, 26.1586944]} // example: replace with user's real location
