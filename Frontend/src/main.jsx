@@ -10,6 +10,8 @@ import ListProviders from "./pages/ListProviders.jsx";
 import ProviderHome from "./pages/ProviderHome.jsx";
 import TableList from "./pages/TableList.jsx";
 import ProfilePage from "./pages/ProfilePage.jsx";
+import StackListActionMenu from "./components/ChatMenu.jsx";
+import ChatPage from "./pages/ChatUi.jsx";
 
 const router = createBrowserRouter([
   {
@@ -22,7 +24,9 @@ const router = createBrowserRouter([
       { path: "Login", element: <Login /> },
       { path: "Providers", element: <ListProviders /> },
       { path: "/Features", element: <TableList />},
-      { path: "/Profile", element: <ProfilePage />}
+      { path: "/Profile", element: <ProfilePage />},
+      { path: "/ChatMenu", element: <StackListActionMenu />},
+      { path: "/ChatRoom/:userId", element: <ChatPage />}
     ],
   },
 ]);

@@ -6,10 +6,11 @@ import {
   PersonIcon,
   SunIcon,
   MoonIcon,
+  ChatBubbleIcon,
 } from "@radix-ui/react-icons";
 import toast from "react-hot-toast";
 import axios from "axios";
-import { useNavigate } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 
 const ServiceFinderHeader = ({ theme, setTheme }) => {
   const [dropdownOpen, setDropdownOpen] = useState(false);
@@ -77,9 +78,6 @@ const ServiceFinderHeader = ({ theme, setTheme }) => {
 
             const providers = res.data;
 
-            console.log("Lat:", lat, "Lng:", lng, "Service:", searchService);
-            console.log("Found providers:", providers);
-
             if (providers.length === 0) {
               throw new Error("No providers found near you.");
             }
@@ -126,7 +124,7 @@ const ServiceFinderHeader = ({ theme, setTheme }) => {
           </span>
         </div>
 
-        {/* Search Bar */}
+        {/* Search Bar (Desktop Only) */}
         {userRole !== "provider" && (
           <div className="hidden md:flex items-center bg-gray-100 dark:bg-zinc-800 border border-gray-300 dark:border-zinc-700 rounded-full px-4 py-2 max-w-md w-full mx-4">
             <input
@@ -147,7 +145,7 @@ const ServiceFinderHeader = ({ theme, setTheme }) => {
 
         {/* Right Actions */}
         <div
-          className="relative flex items-center gap-2 md:gap-4"
+          className="relative flex items-center gap-3 md:gap-4"
           ref={dropdownRef}
         >
           {/* Theme Toggle */}
@@ -163,15 +161,12 @@ const ServiceFinderHeader = ({ theme, setTheme }) => {
             )}
           </button>
 
-          {/* Desktop Links */}
-          <div className="hidden md:flex items-center gap-4">
-            <span className="text-sm md:text-base cursor-pointer hover:text-blue-600 transition-colors">
-              For {userRole}
-            </span>
+          {/* Role and Globe Icon (Now visible on all devices) */}
+          <div className="flex items-center gap-2 md:gap-4 text-sm md:text-base">
             {userRole !== "provider" && (
               <GlobeIcon
                 onClick={handleNavigate}
-                className="w-5 h-5 cursor-pointer hover:scale-110"
+                className="w-5 h-5 cursor-pointer hover:scale-110 text-gray-600 dark:text-gray-300"
               />
             )}
           </div>
@@ -185,18 +180,31 @@ const ServiceFinderHeader = ({ theme, setTheme }) => {
             <PersonIcon className="w-6 h-6 text-gray-600 dark:text-gray-300 rounded-full" />
           </div>
 
-          {/* Dropdown Menu */}
           {dropdownOpen && (
-            <div className="absolute top-14 right-0 w-44 bg-white dark:bg-zinc-800 shadow-lg border border-gray-100 dark:border-zinc-700 rounded-md overflow-hidden z-50">
-              <button className="block w-full text-left px-4 py-2 text-sm text-gray-700 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-zinc-700">
+            <div className="absolute top-14 right-0 w-48 bg-white dark:bg-zinc-800 shadow-lg border border-gray-100 dark:border-zinc-700 rounded-md overflow-hidden z-50">
+              {/* Update Profile */}
+              <button className="flex items-center gap-2 w-full text-left px-4 py-2 text-sm text-gray-700 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-zinc-700">
+                <PersonIcon className="w-4 h-4" />
                 Update Profile
               </button>
+
+              {/* Logout */}
               <button
-                className="block w-full text-left px-4 py-2 text-sm text-red-600 dark:text-red-400 hover:bg-gray-100 dark:hover:bg-zinc-700"
                 onClick={handleLogout}
+                className="flex items-center gap-2 w-full text-left px-4 py-2 text-sm text-red-600 dark:text-red-400 hover:bg-gray-100 dark:hover:bg-zinc-700"
               >
+                <HamburgerMenuIcon className="w-4 h-4 rotate-90" />{" "}
+                {/* Or use a logout icon if available */}
                 Logout
               </button>
+
+              {/* Chat Support */}
+              <Link to={"/ChatMenu"}>
+                <div className="flex items-center gap-2 px-4 py-2 text-sm text-blue-600 dark:text-blue-400 hover:bg-gray-100 dark:hover:bg-zinc-700 cursor-pointer">
+                  <ChatBubbleIcon className="w-4 h-4" />
+                  Chat Support
+                </div>
+              </Link>
             </div>
           )}
         </div>

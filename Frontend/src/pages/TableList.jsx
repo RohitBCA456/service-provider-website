@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from "react";
 import axios from "axios";
-import { useLocation } from "react-router-dom";
+import { Link, useLocation } from "react-router-dom";
 import toast from "react-hot-toast";
 
 const TableList = () => {
@@ -103,7 +103,6 @@ const TableList = () => {
     );
 
     if (!confirmComplete) {
-      // Reset checkbox to unchecked if cancelled
       setCompletedChecks((prev) => ({
         ...prev,
         [bookingId]: false,
@@ -139,7 +138,7 @@ const TableList = () => {
         { withCredentials: true }
       );
       toast.success("Thank you for rating!");
-      await fetchBookings(); // refetch updated data from backend
+      await fetchBookings();
     } catch (error) {
       toast.error("Failed to submit rating.");
       console.error("Rating error:", error);
@@ -199,18 +198,18 @@ const TableList = () => {
   };
 
   return (
-    <div className="min-h-screen w-full p-7">
+    <div className="min-h-screen w-full p-7 overflow-x-auto">
       {loading ? (
         <p className="text-white text-3xl text-center mt-20">Loading...</p>
       ) : data.length === 0 ? (
         <p className="text-3xl text-center mt-20">No bookings found.</p>
       ) : (
-        <table className="w-full text-left border-collapse">
+        <table className="w-full text-left border-collapse min-w-[800px]">
           <thead>
             <tr className="border-b border-white/30">
               <th className="p-3">User</th>
-              <th className="p-3 hidden md:table-cell">Service(s)</th>
-              <th className="p-3 hidden md:table-cell">Email</th>
+              <th className="p-3 md:table-cell">Service(s)</th>
+              <th className="p-3 md:table-cell">Email</th>
               <th className="p-3">TimeSlot</th>
               <th className="p-3">Status</th>
               {status === "completed" && role === "customer" && (
@@ -228,24 +227,26 @@ const TableList = () => {
           <tbody>
             {data.map((booking, idx) => (
               <tr key={idx} className="border-b border-white/10 align-middle">
-                <td className="p-3">
+                <td className="p-3 min-w-[180px] whitespace-nowrap">
                   <div className="flex items-center gap-3">
                     <img
                       src={booking.user?.avatar || defaultAvatar}
                       alt="avatar"
                       onError={(e) => (e.target.src = defaultAvatar)}
-                      className="w-10 h-10 rounded-full object-cover"
+                      className="w-10 h-10 rounded-full object-cover shrink-0"
                     />
-                    <span>{booking.user?.name || "User"}</span>
+                    <span className="text-sm font-medium truncate max-w-[120px]">
+                      {booking.user?.name || "User"}
+                    </span>
                   </div>
                 </td>
-                <td className="p-3 hidden md:table-cell align-middle">
+                <td className="p-3 md:table-cell align-middle">
                   {(booking.services || []).join(", ")}
                 </td>
-                <td className="p-3 hidden md:table-cell align-middle">
+                <td className="p-3 md:table-cell align-middle">
                   {booking.user?.email || "N/A"}
                 </td>
-                <td className="p-3 align-middle">
+                <td className="p-3 min-w-[200px] whitespace-nowrap align-middle">
                   {booking.timeSlot?.date && booking.timeSlot?.time ? (
                     <div className="text-sm text-green-600 font-medium">
                       {new Date(
