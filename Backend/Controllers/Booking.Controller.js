@@ -195,7 +195,7 @@ export const updateStatus = async (req, res) => {
     const { status, timeSlot } = req.body;
 
     const user = await User.findById(req.user?.id);
-    user.availability = !status || status === "completed";
+    user.availability = ["completed", "accepted"].includes(status);
     await user.save({ validateBeforeSave: false });
 
     const updated = await Booking.findByIdAndUpdate(
@@ -203,9 +203,11 @@ export const updateStatus = async (req, res) => {
       { status, timeSlot },
       { new: true }
     );
+
     res.status(200).json(updated);
   } catch (err) {
-    res.status(500).json({ message: "Update failed" });
+    console.error(err);
+    res.status(500).json({ message: "Server Error" });
   }
 };
 
