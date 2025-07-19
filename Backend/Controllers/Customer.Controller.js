@@ -2,65 +2,6 @@ import { User } from "../Models/User.Model.js";
 import { uploadOnCloudinary } from "../utilities/Cloudinary.utilities.js";
 import { deleteFromCloudinaryByUrl } from "../utilities/DeleteFromCloudinary.Utilities.js";
 
-export const registerCustomer = async (req, res) => {
-  try {
-    const { name, email, password, latitude, longitude, address } = req.body;
-    const avatar = req.file?.path;
-
-    console.log("Registering customer with data:", {
-      name,
-      email,
-      password,
-      latitude,
-      longitude,
-      address,
-    });
-
-    if (![name, email, password, latitude, longitude, address].every(Boolean)) {
-      return res.status(400).json({ message: "All fields are required" });
-    }
-
-    if (!email.includes("@")) {
-      return res.status(400).json({ message: "Invalid email format" });
-    }
-
-    const existingUser = await User.findOne({ email });
-    if (existingUser) {
-      return res.status(400).json({ message: "User already exists" });
-    }
-
-    let avatarUrl = "";
-
-    if (avatar) {
-      const uploadResponse = await uploadOnCloudinary(avatar);
-      avatarUrl = uploadResponse?.secure_url || "";
-    }
-
-    await User.create({
-      name,
-      email,
-      password,
-      role: "customer",
-      location: {
-        type: "Point",
-        coordinates: [longitude, latitude],
-        address,
-      },
-      avatar: avatarUrl,
-    });
-
-    return res.status(200).json({
-      success: true,
-      message: "Customer registered successfully.",
-    });
-  } catch (error) {
-    console.error("Error registering customer:", error);
-    return res.status(500).json({
-      message: "Internal server error while registering the customer.",
-    });
-  }
-};
-
 // export const customerLogin = async (req, res) => {
 //   try {
 //     const { email, password } = req.body;
