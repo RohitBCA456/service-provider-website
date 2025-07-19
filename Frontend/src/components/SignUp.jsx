@@ -56,7 +56,7 @@ function CreateAccount() {
     if (avatar) formData.append("avatar", avatar);
 
     toast.promise(
-      axios.post("http://localhost:5000/api/v1/customers/registerCustomer", formData, {
+      axios.post("https://service-provider-website.onrender.com/api/v1/customers/registerCustomer", formData, {
         method: "POST",
         headers: { "Content-Type": "multipart/form-data" },
       }),

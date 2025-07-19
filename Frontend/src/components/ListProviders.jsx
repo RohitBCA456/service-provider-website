@@ -129,7 +129,7 @@ export default function MarqueeProviderDemo() {
       if (!coords) return;
 
       try {
-        const url = `http://localhost:5000/api/v1/providers/getAllNearByProviders?lat=${coords.lat}&lng=${coords.lng}&service=${service}`;
+        const url = `https://service-provider-website.onrender.com/api/v1/providers/getAllNearByProviders?lat=${coords.lat}&lng=${coords.lng}&service=${service}`;
         const res = await axios.get(url, {
           withCredentials: true,
         });

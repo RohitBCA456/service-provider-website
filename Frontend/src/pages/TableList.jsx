@@ -22,7 +22,7 @@ const TableList = () => {
   const fetchUserRole = async () => {
     try {
       const response = await axios.get(
-        "http://localhost:5000/api/v1/auth/fetchUserRole",
+        "https://service-provider-website.onrender.com/api/v1/auth/fetchUserRole",
         { withCredentials: true }
       );
       if (response.data.success) {
@@ -37,7 +37,7 @@ const TableList = () => {
     try {
       setLoading(true);
       const response = await axios.post(
-        "http://localhost:5000/api/v1/booking/getBookingStatus",
+        "https://service-provider-website.onrender.com/api/v1/booking/getBookingStatus",
         { status },
         { withCredentials: true }
       );
@@ -63,7 +63,7 @@ const TableList = () => {
 
     try {
       await axios.put(
-        `http://localhost:5000/api/v1/booking/updateStatus/${bookingId}`,
+        `https://service-provider-website.onrender.com/api/v1/booking/updateStatus/${bookingId}`,
         {
           status: "accepted",
           timeSlot: {
@@ -87,7 +87,7 @@ const TableList = () => {
   const handleReject = async (bookingId) => {
     try {
       await axios.put(
-        `http://localhost:5000/api/v1/booking/updateStatus/${bookingId}`,
+        `https://service-provider-website.onrender.com/api/v1/booking/updateStatus/${bookingId}`,
         { status: "rejected" },
         { withCredentials: true }
       );
@@ -112,7 +112,7 @@ const TableList = () => {
 
     try {
       await axios.put(
-        `http://localhost:5000/api/v1/booking/updateStatus/${bookingId}`,
+        `https://service-provider-website.onrender.com/api/v1/booking/updateStatus/${bookingId}`,
         { status: "completed" },
         { withCredentials: true }
       );
@@ -133,7 +133,7 @@ const TableList = () => {
   const handleRating = async (bookingId, ratingValue) => {
     try {
       await axios.post(
-        "http://localhost:5000/api/v1/booking/submitRating",
+        "https://service-provider-website.onrender.com/api/v1/booking/submitRating",
         { bookingId, rating: ratingValue },
         { withCredentials: true }
       );

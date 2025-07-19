@@ -19,7 +19,7 @@ const ProviderProfile = () => {
     const fetchProvider = async () => {
       try {
         const res = await axios.get(
-          `http://localhost:5000/api/v1/providers/getProvider/${providerId}`
+          `https://service-provider-website.onrender.com/api/v1/providers/getProvider/${providerId}`
         );
         setProvider(res.data.provider || {});
       } catch (err) {
@@ -40,7 +40,7 @@ const ProviderProfile = () => {
       .filter((s) => s.length > 0);
     try {
       const res = await fetch(
-        "http://localhost:5000/api/v1/booking/bookProvider",
+        "https://service-provider-website.onrender.com/api/v1/booking/bookProvider",
         {
           method: "POST",
           credentials: "include",

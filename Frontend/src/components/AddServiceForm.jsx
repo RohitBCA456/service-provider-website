@@ -34,7 +34,7 @@ export default function AddServiceForm() {
 
     try {
       const response = await fetch(
-        "http://localhost:5000/api/v1/providers/updateProvider",
+        "https://service-provider-website.onrender.com/api/v1/providers/updateProvider",
         {
           method: "PUT",
           headers: {
