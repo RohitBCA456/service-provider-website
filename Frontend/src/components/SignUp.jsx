@@ -75,7 +75,7 @@ function CreateAccount() {
       )
       .then((res) => {
         if (res.data.success) {
-          navigate("/login");
+          navigate("/Login");
         }
       });
   };
