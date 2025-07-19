@@ -94,7 +94,7 @@ export const ContactUsMapForm = () => {
                       📧
                     </div>
                     <div className="ml-4">
-                      <p className="font-bold mb-1">Support Email</p>
+                      <p className="font-bold mb-1 text-gray-500">Support Email</p>
                       <p className="text-sm text-neutral-600">
                         help@servicefinder.com
                       </p>
@@ -107,7 +107,7 @@ export const ContactUsMapForm = () => {
                       📍
                     </div>
                     <div className="ml-4">
-                      <p className="font-bold mb-1">Office Address</p>
+                      <p className="font-bold mb-1 text-gray-500">Office Address</p>
                       <p className="text-sm text-neutral-600">
                         123 Service Lane, Sector 45, <br /> New Delhi, India
                       </p>
@@ -120,7 +120,7 @@ export const ContactUsMapForm = () => {
                       ☎️
                     </div>
                     <div className="ml-4">
-                      <p className="font-bold mb-1">Land Line</p>
+                      <p className="font-bold mb-1 text-gray-500">Land Line</p>
                       <p className="text-sm text-neutral-600">
                         +91 (011) 456-7890
                       </p>
@@ -133,7 +133,7 @@ export const ContactUsMapForm = () => {
                       📱
                     </div>
                     <div className="ml-4">
-                      <p className="font-bold mb-1">Mobile</p>
+                      <p className="font-bold mb-1 text-gray-500">Mobile</p>
                       <p className="text-sm text-neutral-600">+91 9876543210</p>
                     </div>
                   </div>

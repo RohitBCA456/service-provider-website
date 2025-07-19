@@ -12,6 +12,38 @@ const ChatPage = () => {
   const [userDetails, setUserDetails] = useState(null);
   const messagesEndRef = useRef(null);
 
+  // ✅ Get consistent room ID once both IDs are available
+  const roomId =
+    currentUserId && targetUserId
+      ? [currentUserId, targetUserId].sort().join("-")
+      : null;
+
+  useEffect(() => {
+    const updateIsRead = async () => {
+      if (!roomId || !currentUserId) return;
+
+      try {
+        const res = await fetch(
+          "http://localhost:5000/api/v1/auth/markAsRead",
+          {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ roomId, userId: currentUserId }),
+          }
+        );
+
+        const data = await res.json();
+        if (!data.success) {
+          console.error("Failed to mark messages as read:", data.message);
+        }
+      } catch (err) {
+        console.error("Error marking messages as read:", err);
+      }
+    };
+
+    updateIsRead();
+  }, [roomId, currentUserId]);
+
   // ✅ Fetch current user from backend
   useEffect(() => {
     const fetchCurrentUser = async () => {
@@ -35,12 +67,6 @@ const ChatPage = () => {
 
     fetchCurrentUser();
   }, []);
-
-  // ✅ Get consistent room ID once both IDs are available
-  const roomId =
-    currentUserId && targetUserId
-      ? [currentUserId, targetUserId].sort().join("-")
-      : null;
 
   // ✅ Fetch receiver user info
   useEffect(() => {

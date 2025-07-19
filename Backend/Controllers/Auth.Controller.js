@@ -119,3 +119,22 @@ export const getCurrentUser = async (req, res) => {
     res.status(500).json({ message: "Server error" });
   }
 };
+
+export const markMessagesAsRead = async (req, res) => {
+  const { roomId, userId } = req.body;
+
+  if (!roomId || !userId) {
+    return res.status(400).json({ success: false, message: "Missing roomId or userId" });
+  }
+
+  try {
+    await Message.updateMany(
+      { roomId, receiverId: userId, isRead: false },
+      { $set: { isRead: true } }
+    );
+    res.status(200).json({ success: true, message: "Messages marked as read" });
+  } catch (err) {
+    console.error("Error updating isRead:", err);
+    res.status(500).json({ success: false, message: "Server error" });
+  }
+};

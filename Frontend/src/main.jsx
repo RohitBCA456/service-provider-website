@@ -12,6 +12,7 @@ import TableList from "./pages/TableList.jsx";
 import ProfilePage from "./pages/ProfilePage.jsx";
 import StackListActionMenu from "./components/ChatMenu.jsx";
 import ChatPage from "./pages/ChatUi.jsx";
+import AddServicePage from "./pages/AddServicePage.jsx";
 
 const router = createBrowserRouter([
   {
@@ -26,7 +27,8 @@ const router = createBrowserRouter([
       { path: "/Features", element: <TableList />},
       { path: "/Profile", element: <ProfilePage />},
       { path: "/ChatMenu", element: <StackListActionMenu />},
-      { path: "/ChatRoom/:userId", element: <ChatPage />}
+      { path: "/ChatRoom/:userId", element: <ChatPage />},
+      { path: "/AddService", element: <AddServicePage />}
     ],
   },
 ]);

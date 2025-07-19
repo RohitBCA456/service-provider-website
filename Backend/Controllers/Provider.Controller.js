@@ -209,11 +209,13 @@ export const getSingleProvider = async (req, res) => {
 
 export const updateProviderProfile = async (req, res) => {
   try {
-    let { name, servicesOffered, latitude, longitude, address } = req.body;
+    let { name, servicesOffered, latitude, longitude, address, pricing } = req.body;
+
+    console.log(servicesOffered, pricing)
 
     const avatar = req.file?.path;
 
-    if (![name, servicesOffered, latitude, longitude, address]) {
+    if (![name, servicesOffered, latitude, longitude, address, pricing]) {
       return res.status(400).json({ message: "All fields are required." });
     }
 
@@ -231,7 +233,8 @@ export const updateProviderProfile = async (req, res) => {
     }
 
     provider.name = name || provider.name;
-    provider.servicesOffered = servicesOffered || provider.servicesOffered;
+    provider.servicesOffered = [...(provider.servicesOffered || []), servicesOffered.toLowerCase()];
+    provider.Pricing = [...(provider.Pricing || []), pricing];
     provider.location = {
       ...provider.location,
       coordinates: [
@@ -244,6 +247,7 @@ export const updateProviderProfile = async (req, res) => {
     await provider.save();
     return res.json({ message: "Provider updated", provider });
   } catch (error) {
+    console.log(error)
     return res
       .status(500)
       .json({ error: "Internal server error while provider profile update." });

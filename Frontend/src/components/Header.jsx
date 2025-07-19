@@ -199,12 +199,14 @@ const ServiceFinderHeader = ({ theme, setTheme }) => {
               </button>
 
               {/* Chat Support */}
-              <Link to={"/ChatMenu"}>
-                <div className="flex items-center gap-2 px-4 py-2 text-sm text-blue-600 dark:text-blue-400 hover:bg-gray-100 dark:hover:bg-zinc-700 cursor-pointer">
-                  <ChatBubbleIcon className="w-4 h-4" />
-                  Chat Support
-                </div>
-              </Link>
+              {userRole !== "provider" && (
+                <Link to={"/ChatMenu"}>
+                  <div className="flex items-center gap-2 px-4 py-2 text-sm text-blue-600 dark:text-blue-400 hover:bg-gray-100 dark:hover:bg-zinc-700 cursor-pointer">
+                    <ChatBubbleIcon className="w-4 h-4" />
+                    Chat Support
+                  </div>
+                </Link>
+              )}
             </div>
           )}
         </div>

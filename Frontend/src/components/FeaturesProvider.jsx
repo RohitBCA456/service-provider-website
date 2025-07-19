@@ -12,12 +12,14 @@ import { useNavigate } from "react-router-dom";
 
 const Features = () => {
   const navigate = useNavigate();
+  const [unreadCount, setUnreadCount] = useState(0);
 
   const [bookingStats, setBookingStats] = useState({
     total: 0,
     pending: 0,
     accepted: 0,
     rejected: 0,
+    unreadRoomsCount: 0,
   });
 
   useEffect(() => {
@@ -71,6 +73,7 @@ const Features = () => {
       title: "Add Services",
       description: "Grow your business by listing more services you offer.",
       iconColor: "#7E0AC4",
+      route: "/AddService" 
     },
     {
       icon: Sliders,
@@ -85,6 +88,8 @@ const Features = () => {
       description:
         "Get real-time alerts for bookings, confirmations and messages.",
       iconColor: "#BF1495",
+      route: "/ChatMenu",
+      total: bookingStats.unreadRoomsCount
     },
   ];
 
@@ -92,7 +97,39 @@ const Features = () => {
     if (feature.status) {
       navigate("/Features", { state: { status: feature.status } });
     }
+    else if(feature.route) {
+      navigate(feature.route)
+    }
   };
+
+  const useUnreadRooms = () => {
+
+  const fetchUnreadRoomsCount = async () => {
+    try {
+      const res = await axios.get(
+        "http://localhost:5000/api/v1/auth/getUnreadRoomsCount",
+        { withCredentials: true }
+      );
+      setUnreadCount(res.data.unreadRoomsCount);
+    } catch (err) {
+      console.error("Failed to fetch unread room count", err);
+    }
+  };
+
+  useEffect(() => {
+    fetchUnreadRoomsCount();
+
+    socket.on("new-message", () => {
+      fetchUnreadRoomsCount(); 
+    });
+
+    return () => {
+      socket.off("new-message");
+    };
+  }, []);
+
+  return unreadCount;
+};
 
   return (
     <div className="flex flex-col items-center h-full max-w-[1440px] pt-[88px] p-5">

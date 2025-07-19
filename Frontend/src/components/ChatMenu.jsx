@@ -109,13 +109,18 @@ const StackListActionMenu = () => {
                           state: { id: user.id },
                         })
                       }
-                      className={`px-4 py-1.5 rounded-full text-sm font-medium shadow-sm transition ${
+                      className={`relative px-4 py-1.5 rounded-full text-sm font-medium shadow-sm transition ${
                         booking.status === "pending"
                           ? "bg-yellow-500 hover:bg-yellow-600 text-white"
                           : "bg-blue-600 hover:bg-blue-700 text-white"
                       }`}
                     >
                       Chat
+                      {booking.unreadCount > 0 && (
+                        <span className="absolute -top-1 -right-2 bg-red-600 text-white text-xs px-1.5 py-0.5 rounded-full">
+                          {booking.unreadCount}
+                        </span>
+                      )}
                     </button>
                   </td>
                 </tr>

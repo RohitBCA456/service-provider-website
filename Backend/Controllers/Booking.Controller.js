@@ -1,5 +1,6 @@
 import { Booking } from "../Models/Booking.Model.js";
 import { User } from "../Models/User.Model.js";
+import { Message } from "../Models/Message.Model.js";
 
 export const bookProvider = async (req, res) => {
   const providerId = req.body.providerId;
@@ -68,12 +69,10 @@ export const getBookingStatus = async (req, res) => {
 
     const bookings = await Booking.find(filter).lean();
 
-    // Collect all user IDs to fetch (provider or customer based on role)
     const userIdsToFetch = bookings.map((b) =>
       role === "customer" ? b.providerId : b.customerId
     );
 
-    // Fetch user details manually
     const users = await User.find(
       { _id: { $in: userIdsToFetch } },
       "avatar email name"
@@ -84,7 +83,28 @@ export const getBookingStatus = async (req, res) => {
       userMap[user._id.toString()] = user;
     });
 
-    const formatted = bookings.map((booking) => {
+    // Collect all roomIds to batch query unread counts
+    const roomQueries = bookings.map((b) => {
+      const targetId = role === "customer" ? b.providerId : b.customerId;
+      const sortedIds = [userId, targetId.toString()].sort();
+      return {
+        roomId: sortedIds.join("-"),
+        receiverId: userId,
+      };
+    });
+
+    // Fetch unread counts for all rooms in batch
+    const unreadCounts = await Promise.all(
+      roomQueries.map(({ roomId, receiverId }) =>
+        Message.countDocuments({
+          roomId,
+          receiverId,
+          isRead: false,
+        })
+      )
+    );
+
+    const formatted = bookings.map((booking, index) => {
       const targetId =
         role === "customer" ? booking.providerId : booking.customerId;
 
@@ -96,6 +116,7 @@ export const getBookingStatus = async (req, res) => {
         services: booking.serviceName,
         timeSlot: booking.timeSlot || null,
         rating: booking.rating || null,
+        unreadCount: unreadCounts[index], // 🔥 Add unread message count
         user: {
           id: targetId,
           avatar: userData.avatar || null,
@@ -134,7 +155,33 @@ export const getBookingStats = async (req, res) => {
       pending: allBookings.filter((b) => b.status === "pending").length,
       accepted: allBookings.filter((b) => b.status === "accepted").length,
       rejected: allBookings.filter((b) => b.status === "rejected").length,
+      unreadRoomsCount: 0,
     };
+
+    // --- Calculate unreadRoomsCount, excluding rejected ones ---
+    const unreadMessages = await Message.find({
+      receiverId: userId,
+      isRead: false,
+    }).select("senderId roomId");
+
+    const roomSet = new Set();
+
+    for (let msg of unreadMessages) {
+      // Find if booking between current user and sender is not rejected
+      const booking = await Booking.findOne({
+        $or: [
+          { customerId: userId, providerId: msg.senderId },
+          { providerId: userId, customerId: msg.senderId },
+        ],
+        status: { $ne: "rejected" }, // NOT rejected
+      });
+
+      if (booking) {
+        roomSet.add(msg.roomId);
+      }
+    }
+
+    stats.unreadRoomsCount = roomSet.size;
 
     res.status(200).json(stats);
   } catch (err) {

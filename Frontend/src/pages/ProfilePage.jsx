@@ -66,7 +66,7 @@ const ProviderProfile = () => {
   if (!provider) return <div className="p-6">Provider not found.</div>;
 
   return (
-    <div className="min-h-screen w-full bg-gradient-to-br from-white via-slate-100 to-slate-200 px-4 py-10">
+    <div className="min-h-screen w-full bg-gradient-to-br light:from-white via-slate-100 to-slate-200 px-4 py-10">
       <div className="max-w-5xl mx-auto bg-white shadow-xl rounded-xl p-8">
         <button
           onClick={() => navigate(-1)}
@@ -134,7 +134,7 @@ const ProviderProfile = () => {
           )}
         </div>
 
-        <div className="mt-10 border-t pt-6 flex flex-col md:flex-row items-center gap-4">
+        <div className="mt-10 border-t border-gray-900 pt-6 flex flex-col md:flex-row items-center gap-4">
           <input
             type="text"
             value={selectedService}
