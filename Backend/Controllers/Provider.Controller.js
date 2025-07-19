@@ -12,7 +12,6 @@ export const registerProvider = async (req, res) => {
       latitude,
       longitude,
       address,
-      servicesOffered,
     } = req.body;
 
     const avatar = req.file?.path;
@@ -25,7 +24,6 @@ export const registerProvider = async (req, res) => {
       latitude,
       longitude,
       address,
-      servicesOffered,
     });
 
     if (
@@ -36,7 +34,6 @@ export const registerProvider = async (req, res) => {
         latitude,
         longitude,
         address,
-        servicesOffered,
       ].every(Boolean)
     ) {
       return res.status(400).json({ message: "All fields are required" });
@@ -63,7 +60,6 @@ export const registerProvider = async (req, res) => {
       email,
       password,
       role: "provider",
-      servicesOffered,
       location: {
         type: "Point",
         coordinates: [longitude, latitude],
