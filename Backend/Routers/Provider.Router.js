@@ -8,12 +8,18 @@ import {
 } from "../Controllers/Provider.Controller.js";
 import { authMiddleware } from "../Middlewares/Auth.Middleware.js";
 
+import { upload } from "../Middlewares/Multer.Middleware.js";
+
 const router = Router();
 
-router.route("/registerProvider").post(upload.single("avatar"), registerProvider);
+router
+  .route("/registerProvider")
+  .post(upload.single("avatar"), registerProvider);
 router.route("/updateProvider").put(authMiddleware, updateProviderProfile);
 router.route("/getProvider/:providerId").get(getSingleProvider);
-router.route("/getAllNearByProviders").get(authMiddleware, getALLNearByProviders);
+router
+  .route("/getAllNearByProviders")
+  .get(authMiddleware, getALLNearByProviders);
 router.route("/logoutProvider").get(authMiddleware, logoutProvider);
 
 export default router;
