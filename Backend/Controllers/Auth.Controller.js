@@ -1,5 +1,6 @@
 import { User } from "../Models/User.Model.js";
 import { Message } from "../Models/Message.Model.js";
+import { uploadOnCloudinary } from "../utilities/Cloudinary.utilities.js";
 
 export const registerUser = async (req, res) => {
   try {
@@ -51,7 +52,7 @@ export const registerUser = async (req, res) => {
 
     return res.status(200).json({
       success: true,
-      message: "Customer registered successfully.",
+      message: `${role} registered successfully.`,
     });
   } catch (error) {
     console.error("Error registering customer:", error);
