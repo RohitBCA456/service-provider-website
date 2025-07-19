@@ -20,15 +20,15 @@ const router = createBrowserRouter([
     element: <App />,
     children: [
       { index: true, element: <CreateAccount /> },
-      { path: "Home", element: <Home /> },
-      { path: "ProviderHome", element: <ProviderHome />},
-      { path: "Login", element: <Login /> },
-      { path: "Providers", element: <ListProviders /> },
-      { path: "Features", element: <TableList />},
-      { path: "Profile", element: <ProfilePage />},
-      { path: "ChatMenu", element: <StackListActionMenu />},
-      { path: "ChatRoom/:userId", element: <ChatPage />},
-      { path: "AddService", element: <AddServicePage />}
+      { path: "/Home", element: <Home /> },
+      { path: "/ProviderHome", element: <ProviderHome />},
+      { path: "/Login", element: <Login /> },
+      { path: "/Providers", element: <ListProviders /> },
+      { path: "/Features", element: <TableList />},
+      { path: "/Profile", element: <ProfilePage />},
+      { path: "/ChatMenu", element: <StackListActionMenu />},
+      { path: "/ChatRoom/:userId", element: <ChatPage />},
+      { path: "/AddService", element: <AddServicePage />}
     ],
   },
 ]);

@@ -55,22 +55,29 @@ function CreateAccount() {
     formData.append("longitude", coords.longitude);
     if (avatar) formData.append("avatar", avatar);
 
-    toast.promise(
-      axios.post("https://service-provider-website.onrender.com/api/v1/customers/registerCustomer", formData, {
-        method: "POST",
-        headers: { "Content-Type": "multipart/form-data" },
-      }),
-      {
-        loading: "Registering your account...",
-        success: "Account created successfully!",
-        error: (err) =>
-          err?.response?.data?.message || "Registration failed. Try again.",
-      }
-    ).then((res) => {
-      if (res.data.success) {
-        navigate("/Login");
-      }
-    });
+    // ✅ Dynamic endpoint based on role
+    const url =
+      role === "provider"
+        ? "https://service-provider-website.onrender.com/api/v1/providers/registerProvider"
+        : "https://service-provider-website.onrender.com/api/v1/customers/registerCustomer";
+
+    toast
+      .promise(
+        axios.post(url, formData, {
+          headers: { "Content-Type": "multipart/form-data" },
+        }),
+        {
+          loading: "Registering your account...",
+          success: "Account created successfully!",
+          error: (err) =>
+            err?.response?.data?.message || "Registration failed. Try again.",
+        }
+      )
+      .then((res) => {
+        if (res.data.success) {
+          navigate("/login");
+        }
+      });
   };
 
   const handleSignInRedirect = () => navigate("/login");
