@@ -11,7 +11,7 @@ function App() {
   const location = useLocation();
 
   const hideLayout =
-    location.pathname === "/" || location.pathname === "/login" || location.pathname.startsWith("/ChatRoom");
+    location.pathname === "/" || location.pathname === "login" || location.pathname.startsWith("/ChatRoom");
 
   useEffect(() => {
     document.body.className =
