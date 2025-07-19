@@ -1,22 +1,19 @@
-import { app, server } from "./app.js";
+import { app, server } from "./app.js"; // server is likely http.createServer(app)
 import { connectDB } from "./Database/Db.js";
+
+const PORT = process.env.PORT || 3000; // use PORT for both HTTP and Socket
 
 connectDB()
   .then(() => {
     app.on("error", (err) => {
       console.error(`Server error: ${err.message}`);
     });
-    app.listen(process.env.PORT || 3000, () => {
-      console.log(`Server is running on port ${process.env.PORT || 3000}`);
+
+    server.listen(PORT, () => {
+      console.log(`Server & Socket.IO running on port ${PORT}`);
     });
   })
   .catch((error) => {
     console.error(`Failed to connect to the database: ${error.message}`);
     process.exit(1);
   });
-
-const PORT = process.env.SOCKET_PORT || 2000;
-
-server.listen(PORT, () => {
-  console.log(`socket server is running on ${PORT}`);
-});
