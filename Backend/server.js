@@ -6,8 +6,8 @@ connectDB()
     app.on("error", (err) => {
       console.error(`Server error: ${err.message}`);
     });
-    app.listen(process.env.PORT || 5000, () => {
-      console.log(`Server is running on port ${process.env.PORT || 5000}`);
+    app.listen(process.env.PORT || 3000, () => {
+      console.log(`Server is running on port ${process.env.PORT || 3000}`);
     });
   })
   .catch((error) => {
