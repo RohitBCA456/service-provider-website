@@ -231,14 +231,14 @@ const UserServices = () => {
               placeholder="New service"
               value={newService}
               onChange={(e) => setNewService(e.target.value)}
-              className="border border-indigo-300 rounded-lg px-4 py-2 w-full sm:w-1/2 focus:outline-none focus:ring-2 focus:ring-indigo-500"
+              className="border text-gray-600 border-indigo-300 rounded-lg px-4 py-2 w-full sm:w-1/2 focus:outline-none focus:ring-2 focus:ring-indigo-500"
             />
             <input
               type="number"
               placeholder="Price (₹)"
               value={newPrice}
               onChange={(e) => setNewPrice(e.target.value)}
-              className="border border-green-300 rounded-lg px-4 py-2 w-full sm:w-1/4 focus:outline-none focus:ring-2 focus:ring-green-500"
+              className="border text-gray-600 border-green-300 rounded-lg px-4 py-2 w-full sm:w-1/4 focus:outline-none focus:ring-2 focus:ring-green-500"
             />
             <button
               onClick={handleAddPair}

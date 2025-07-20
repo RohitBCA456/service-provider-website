@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from "react";
 import axios from "axios";
-import { Link, useLocation } from "react-router-dom";
+import { Link, useLocation, useNavigate } from "react-router-dom";
 import toast from "react-hot-toast";
 
 const TableList = () => {
@@ -12,9 +12,11 @@ const TableList = () => {
   const [role, setRole] = useState(null);
   const [completedChecks, setCompletedChecks] = useState({});
   const [ratedBookings, setRatedBookings] = useState({});
+  const [actionLoading, setActionLoading] = useState({});
 
   const location = useLocation();
   const status = location.state?.status;
+  const navigate = useNavigate();
 
   const defaultAvatar =
     "https://i.pinimg.com/474x/07/c4/72/07c4720d19a9e9edad9d0e939eca304a.jpg";
@@ -61,6 +63,8 @@ const TableList = () => {
       return;
     }
 
+    setActionLoading((prev) => ({ ...prev, [bookingId]: true }));
+
     try {
       await axios.put(
         `https://service-provider-website.onrender.com/api/v1/booking/updateStatus/${bookingId}`,
@@ -73,27 +77,35 @@ const TableList = () => {
         },
         { withCredentials: true }
       );
-
+      toast.success("Approved");
+      fetchBookings();
       setEditingRow(null);
       setSelectedDate("");
       setSelectedTime("");
-      toast.success("Approved");
-      fetchBookings();
     } catch (error) {
       console.error("Error accepting booking:", error);
+      toast.error("Failed to accept");
+    } finally {
+      setActionLoading((prev) => ({ ...prev, [bookingId]: false }));
     }
   };
 
   const handleReject = async (bookingId) => {
+    setActionLoading((prev) => ({ ...prev, [bookingId]: true }));
+
     try {
       await axios.put(
         `https://service-provider-website.onrender.com/api/v1/booking/updateStatus/${bookingId}`,
         { status: "rejected" },
         { withCredentials: true }
       );
+      toast.success("Rejected");
       fetchBookings();
     } catch (error) {
       console.error("Error rejecting booking:", error);
+      toast.error("Failed to reject");
+    } finally {
+      setActionLoading((prev) => ({ ...prev, [bookingId]: false }));
     }
   };
 
@@ -170,10 +182,15 @@ const TableList = () => {
             onChange={(e) => setSelectedTime(e.target.value)}
           />
           <button
-            className="mt-3 bg-gradient-to-r from-blue-500 to-indigo-600 text-white font-semibold px-4 py-2 rounded-md hover:from-blue-600 hover:to-indigo-700 transition duration-200 shadow-md"
+            disabled={actionLoading[bookingId]}
+            className={`mt-3 px-4 py-2 rounded-md font-semibold shadow-md transition duration-200 text-white ${
+              actionLoading[bookingId]
+                ? "bg-blue-300 cursor-not-allowed"
+                : "bg-gradient-to-r from-blue-500 to-indigo-600 hover:from-blue-600 hover:to-indigo-700"
+            }`}
             onClick={() => handleSave(bookingId)}
           >
-            Save Slot
+            {actionLoading[bookingId] ? "Saving..." : "Save Slot"}
           </button>
         </div>
       );
@@ -182,16 +199,18 @@ const TableList = () => {
     return (
       <div className="flex gap-2">
         <button
-          className="bg-green-500 px-3 py-1 rounded text-white hover:bg-green-600"
+          className="bg-green-500 px-3 py-1 rounded text-white hover:bg-green-600 disabled:opacity-50"
           onClick={() => setEditingRow(idx)}
+          disabled={actionLoading[bookingId]}
         >
-          Accept
+          {actionLoading[bookingId] ? "Loading..." : "Accept"}
         </button>
         <button
-          className="bg-red-500 px-3 py-1 rounded text-white hover:bg-red-600"
+          className="bg-red-500 px-3 py-1 rounded text-white hover:bg-red-600 disabled:opacity-50"
           onClick={() => handleReject(bookingId)}
+          disabled={actionLoading[bookingId]}
         >
-          Reject
+          {actionLoading[bookingId] ? "..." : "Reject"}
         </button>
       </div>
     );
@@ -230,11 +249,19 @@ const TableList = () => {
                 <td className="p-3 min-w-[180px] whitespace-nowrap">
                   <div className="flex items-center gap-3">
                     <img
+                      onClick={() => {
+                        if (role === "customer") {
+                          navigate("/Profile", {
+                            state: { providerId: booking.user?.id },
+                          });
+                        }
+                      }}
                       src={booking.user?.avatar || defaultAvatar}
                       alt="avatar"
                       onError={(e) => (e.target.src = defaultAvatar)}
                       className="w-10 h-10 rounded-full object-cover shrink-0"
                     />
+
                     <span className="text-sm font-medium truncate max-w-[120px]">
                       {booking.user?.name || "User"}
                     </span>

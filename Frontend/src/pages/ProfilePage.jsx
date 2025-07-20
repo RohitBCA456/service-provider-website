@@ -11,6 +11,7 @@ const ProviderProfile = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
   const [selectedService, setSelectedService] = useState("");
+  const [bookingInProgress, setBookingInProgress] = useState(false);
 
   const fallbackAvatar =
     "https://i.pinimg.com/474x/07/c4/72/07c4720d19a9e9edad9d0e939eca304a.jpg";
@@ -38,6 +39,9 @@ const ProviderProfile = () => {
       .split(",")
       .map((s) => s.trim())
       .filter((s) => s.length > 0);
+
+    setBookingInProgress(true); // Start booking
+
     try {
       const res = await fetch(
         "https://service-provider-website.onrender.com/api/v1/booking/bookProvider",
@@ -56,9 +60,12 @@ const ProviderProfile = () => {
       toast.success("Booking Successfull");
       navigate("/Home");
     } catch (err) {
-      toast.error(`Booking failed: ${err.message}`);
+      console.log(err);
+      toast.error("Booking failed");
+    } finally {
+      setBookingInProgress(false); // End booking
+      setSelectedService("");
     }
-    setSelectedService("");
   };
 
   if (loading) return <div className="p-6">Loading...</div>;
@@ -138,6 +145,7 @@ const ProviderProfile = () => {
           <input
             type="text"
             value={selectedService}
+            required
             onChange={(e) => setSelectedService(e.target.value)}
             placeholder="Enter services (comma-separated)"
             className="flex-1 px-4 py-2 border rounded-lg shadow-sm text-gray-500 focus:outline-none focus:ring-2 focus:ring-purple-500"
@@ -145,9 +153,10 @@ const ProviderProfile = () => {
 
           <button
             onClick={() => handleBooking(providerId, selectedService)}
-            className="bg-purple-600 hover:bg-purple-700 text-white px-6 py-2 rounded-lg shadow-lg transition-all text-sm font-semibold"
+            className="bg-purple-600 hover:bg-purple-700 text-white px-6 py-2 rounded-lg shadow-lg transition-all text-sm font-semibold disabled:opacity-50"
+            disabled={bookingInProgress}
           >
-            🚀 Book Now
+            {bookingInProgress ? "⏳ Booking..." : "🚀 Book Now"}
           </button>
         </div>
 
