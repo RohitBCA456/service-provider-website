@@ -84,10 +84,14 @@ export const getSingleProvider = async (req, res) => {
 
 export const updateProviderProfile = async (req, res) => {
   try {
-    let { name, latitude, longitude, address } =
+    let { name, servicesOffered, latitude, longitude, address, pricing } =
       req.body;
 
     const avatar = req.file?.path;
+
+    if (servicesOffered) {
+      servicesOffered = servicesOffered.toLowerCase();
+    }
 
     const provider = await User.findById(req.user?.id);
     if (!provider || provider.role !== "provider") {
@@ -100,6 +104,11 @@ export const updateProviderProfile = async (req, res) => {
     }
 
     provider.name = name || provider.name;
+    provider.servicesOffered = [
+      ...(provider.servicesOffered || []),
+      servicesOffered.toLowerCase(),
+    ];
+    provider.Pricing = [...(provider.Pricing || []), pricing];
     provider.location = {
       ...provider.location,
       coordinates: [
@@ -191,13 +200,11 @@ export const updateServicePair = async (req, res) => {
 
     await user.save();
 
-    return res
-      .status(200)
-      .json({
-        message: "Service and pricing updated",
-        services: user.servicesOffered,
-        pricing: user.Pricing,
-      });
+    return res.status(200).json({
+      message: "Service and pricing updated",
+      services: user.servicesOffered,
+      pricing: user.Pricing,
+    });
   } catch (error) {
     console.error("Error updating service pair:", error);
     return res.status(500).json({ message: "Internal server error" });
@@ -226,13 +233,11 @@ export const deleteServicePair = async (req, res) => {
 
     await user.save();
 
-    return res
-      .status(200)
-      .json({
-        message: "Service and pricing deleted",
-        services: user.servicesOffered,
-        pricing: user.Pricing,
-      });
+    return res.status(200).json({
+      message: "Service and pricing deleted",
+      services: user.servicesOffered,
+      pricing: user.Pricing,
+    });
   } catch (error) {
     console.error("Error deleting service pair:", error);
     return res.status(500).json({ message: "Internal server error" });
