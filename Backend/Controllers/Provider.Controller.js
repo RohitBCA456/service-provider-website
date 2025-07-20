@@ -169,3 +169,65 @@ export const logoutProvider = async (req, res) => {
     });
   }
 };
+
+export const updateServicePair = async (req, res) => {
+  try {
+    const { index, service, price } = req.body;
+
+    if (index === undefined || !service || !price) {
+      return res.status(400).json({ message: "Index, service, and price are required." });
+    }
+
+    const user = await User.findById(req.user?.id);
+    if (!user || user.role !== "provider") {
+      return res.status(404).json({ message: "Provider not found." });
+    }
+
+    if (!Array.isArray(user.servicesOffered) || !Array.isArray(user.Pricing)) {
+      return res.status(400).json({ message: "Service or pricing list is invalid." });
+    }
+
+    if (index < 0 || index >= user.servicesOffered.length) {
+      return res.status(400).json({ message: "Invalid index." });
+    }
+
+    user.servicesOffered[index] = service.toLowerCase();
+    user.Pricing[index] = price;
+
+    await user.save();
+
+    return res.status(200).json({ message: "Service and pricing updated", services: user.servicesOffered, pricing: user.Pricing });
+  } catch (error) {
+    console.error("Error updating service pair:", error);
+    return res.status(500).json({ message: "Internal server error" });
+  }
+};
+
+export const deleteServicePair = async (req, res) => {
+  try {
+    const { index } = req.body;
+
+    if (index === undefined) {
+      return res.status(400).json({ message: "Index is required." });
+    }
+
+    const user = await User.findById(req.user?.id);
+    if (!user || user.role !== "provider") {
+      return res.status(404).json({ message: "Provider not found." });
+    }
+
+    if (index < 0 || index >= user.servicesOffered.length) {
+      return res.status(400).json({ message: "Invalid index." });
+    }
+
+    user.servicesOffered.splice(index, 1);
+    user.Pricing.splice(index, 1);
+
+    await user.save();
+
+    return res.status(200).json({ message: "Service and pricing deleted", services: user.servicesOffered, pricing: user.Pricing });
+  } catch (error) {
+    console.error("Error deleting service pair:", error);
+    return res.status(500).json({ message: "Internal server error" });
+  }
+};

@@ -4,9 +4,10 @@ import {
   getSingleProvider,
   getALLNearByProviders,
   logoutProvider,
+  updateServicePair,
+  deleteServicePair,
 } from "../Controllers/Provider.Controller.js";
 import { authMiddleware } from "../Middlewares/Auth.Middleware.js";
-
 
 const router = Router();
 
@@ -16,5 +17,7 @@ router
   .route("/getAllNearByProviders")
   .get(authMiddleware, getALLNearByProviders);
 router.route("/logoutProvider").get(authMiddleware, logoutProvider);
+router.route("/updateServicePairs").put(updateServicePair);
+router.route("/deleteServicePairs").delete(deleteServicePair);
 
 export default router;
