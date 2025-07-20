@@ -160,29 +160,6 @@ export default function UpdateProfile() {
         formDataToSend.append("avatar", formData.avatar);
       }
 
-      // ... all your previous code remains the same
-
-      if (formData.role === "provider") {
-        if (formData.servicesOffered) {
-          const cleanedServices = formData.servicesOffered
-            .split(",")
-            .map((s) => s.trim())
-            .filter((s) => s !== "")
-            .join(",");
-          formDataToSend.append("servicesOffered", cleanedServices);
-        }
-
-        if (formData.pricing) {
-          const cleanedPricingArray = formData.pricing
-            .split(",")
-            .map((p) => parseFloat(p.trim()))
-            .filter((p) => !isNaN(p));
-
-          // ✅ FIX: Send as JSON string
-          formDataToSend.append("pricing", JSON.stringify(cleanedPricingArray));
-        }
-      }
-
       const endpoint =
         formData.role === "provider"
           ? "https://service-provider-website.onrender.com/api/v1/providers/updateProvider"

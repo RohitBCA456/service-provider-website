@@ -84,12 +84,10 @@ export const getSingleProvider = async (req, res) => {
 
 export const updateProviderProfile = async (req, res) => {
   try {
-    let { name, servicesOffered, latitude, longitude, address, pricing } =
+    let { name, latitude, longitude, address } =
       req.body;
 
     const avatar = req.file?.path;
-
-    servicesOffered = servicesOffered.toLowerCase();
 
     const provider = await User.findById(req.user?.id);
     if (!provider || provider.role !== "provider") {
