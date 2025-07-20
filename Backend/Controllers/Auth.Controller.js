@@ -4,7 +4,8 @@ import { uploadOnCloudinary } from "../utilities/Cloudinary.utilities.js";
 
 export const registerUser = async (req, res) => {
   try {
-    const { name, email, password, role, latitude, longitude, address } = req.body;
+    const { name, email, password, role, latitude, longitude, address } =
+      req.body;
     const avatar = req.file?.path;
 
     console.log("Registering customer with data:", {
@@ -17,7 +18,11 @@ export const registerUser = async (req, res) => {
       address,
     });
 
-    if (![name, email, password, role, latitude, longitude, address].every(Boolean)) {
+    if (
+      ![name, email, password, role, latitude, longitude, address].every(
+        Boolean
+      )
+    ) {
       return res.status(400).json({ message: "All fields are required" });
     }
 
@@ -61,7 +66,6 @@ export const registerUser = async (req, res) => {
     });
   }
 };
-
 
 export const Login = async (req, res) => {
   try {
@@ -128,7 +132,7 @@ export const fetchUserRole = async (req, res) => {
 
 export const getUserDetails = async (req, res) => {
   try {
-    const userId = req.params.id;
+    const { userId } = req.params;
 
     if (!userId) {
       return res.status(400).json({ message: "User ID is required" });
@@ -186,7 +190,9 @@ export const markMessagesAsRead = async (req, res) => {
   const { roomId, userId } = req.body;
 
   if (!roomId || !userId) {
-    return res.status(400).json({ success: false, message: "Missing roomId or userId" });
+    return res
+      .status(400)
+      .json({ success: false, message: "Missing roomId or userId" });
   }
 
   try {

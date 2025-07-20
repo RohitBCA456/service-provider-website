@@ -81,6 +81,7 @@ const Features = () => {
       description:
         "Update, remove or adjust the pricing of your services anytime.",
       iconColor: "#1267D4",
+      route: "/ManageService"
     },
     {
       icon: Bell,
