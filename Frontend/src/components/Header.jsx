@@ -187,7 +187,10 @@ const ServiceFinderHeader = ({ theme, setTheme }) => {
             <div className="absolute top-14 right-0 w-48 bg-white dark:bg-zinc-800 shadow-lg border border-gray-100 dark:border-zinc-700 rounded-md overflow-hidden z-50">
               {/* Update Profile */}
               <Link to={"/UpdateProfile"}>
-                <button className="flex items-center gap-2 w-full text-left px-4 py-2 text-sm text-gray-700 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-zinc-700">
+                <button
+                  onClick={() => setDropdownOpen(false)}
+                  className="flex items-center gap-2 w-full text-left px-4 py-2 text-sm text-gray-700 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-zinc-700"
+                >
                   <PersonIcon className="w-4 h-4" />
                   Update Profile
                 </button>
@@ -195,7 +198,10 @@ const ServiceFinderHeader = ({ theme, setTheme }) => {
 
               {/* Logout */}
               <button
-                onClick={handleLogout}
+                onClick={() => {
+                  setDropdownOpen(false);
+                  handleLogout();
+                }}
                 className="flex items-center gap-2 w-full text-left px-4 py-2 text-sm text-red-600 dark:text-red-400 hover:bg-gray-100 dark:hover:bg-zinc-700"
               >
                 <HamburgerMenuIcon className="w-4 h-4 rotate-90" />{" "}
@@ -206,7 +212,10 @@ const ServiceFinderHeader = ({ theme, setTheme }) => {
               {/* Chat Support */}
               {userRole !== "provider" && (
                 <Link to={"/ChatMenu"}>
-                  <div className="flex items-center gap-2 px-4 py-2 text-sm text-blue-600 dark:text-blue-400 hover:bg-gray-100 dark:hover:bg-zinc-700 cursor-pointer">
+                  <div
+                    onClick={() => setDropdownOpen(false)}
+                    className="flex items-center gap-2 px-4 py-2 text-sm text-blue-600 dark:text-blue-400 hover:bg-gray-100 dark:hover:bg-zinc-700 cursor-pointer"
+                  >
                     <ChatBubbleIcon className="w-4 h-4" />
                     Chat Support
                   </div>

@@ -2,6 +2,7 @@ import React, { useEffect, useState } from "react";
 import axios from "axios";
 import { Link, useLocation, useNavigate } from "react-router-dom";
 import toast from "react-hot-toast";
+import Loader from "../components/Loader";
 
 const TableList = () => {
   const [data, setData] = useState([]);
@@ -219,7 +220,7 @@ const TableList = () => {
   return (
     <div className="min-h-screen w-full p-7 overflow-x-auto">
       {loading ? (
-        <p className="text-white text-3xl text-center mt-20">Loading...</p>
+        <Loader />
       ) : data.length === 0 ? (
         <p className="text-3xl text-center mt-20">No bookings found.</p>
       ) : (
