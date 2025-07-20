@@ -135,7 +135,7 @@ const UserServices = () => {
     );
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-blue-100 to-purple-200 px-4 py-12">
+    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br light:from-blue-100 to-purple-200 px-4 py-12">
       <div className="max-w-4xl w-full bg-white p-8 rounded-3xl shadow-xl">
         <h2 className="text-3xl font-bold text-center text-indigo-700 mb-10 tracking-wide">
           {user.name}'s Service Pricing

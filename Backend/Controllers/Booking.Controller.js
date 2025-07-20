@@ -195,7 +195,7 @@ export const updateStatus = async (req, res) => {
     const { status, timeSlot } = req.body;
 
     const user = await User.findById(req.user?.id);
-    user.availability = ['pending', 'accepted', 'rejected'].includes(status);
+    user.availability = ['pending', 'completed', 'rejected'].includes(status);
     await user.save({ validateBeforeSave: false });
 
     const updated = await Booking.findByIdAndUpdate(
