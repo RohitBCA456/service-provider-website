@@ -1,26 +1,32 @@
 import React, { useEffect, useState } from "react";
 import axios from "axios";
 
-const UserServices = ({ userId }) => {
+const UserServices = () => {
+  const [userId, setUserId] = useState("");
   const [user, setUser] = useState(null);
   const [services, setServices] = useState([]);
   const [pricing, setPricing] = useState([]);
 
+  // Fetch current user ID
   useEffect(() => {
-    const fetchUser = async () => {
+    const fetchCurrentUser = async () => {
       try {
         const res = await axios.get(
-          `https://service-provider-website.onrender.com/api/v1/auth/getUserDetails/${userId}`
+          "https://service-provider-website.onrender.com/api/v1/auth/getCurrentUser",
+          { withCredentials: true } // important for cookie-based auth
         );
-        setUser(res.data.user);
-        setServices(res.data.user.servicesOffered || []);
-        setPricing(res.data.user.pricing || []);
+        const fetchedUser = res.data.user;
+        setUserId(fetchedUser._id);
+        setUser(fetchedUser);
+        setServices(fetchedUser.servicesOffered || []);
+        setPricing(fetchedUser.pricing || []);
       } catch (err) {
-        console.error("Error fetching user:", err);
+        console.error("Error fetching current user:", err);
       }
     };
-    fetchUser();
-  }, [userId]);
+
+    fetchCurrentUser();
+  }, []);
 
   const handleDeleteService = (index) => {
     setServices((prev) => prev.filter((_, i) => i !== index));
@@ -37,7 +43,8 @@ const UserServices = ({ userId }) => {
         {
           servicesOffered: services,
           pricing: pricing,
-        }
+        },
+        { withCredentials: true }
       );
       alert("Updated successfully!");
     } catch (err) {
@@ -45,10 +52,12 @@ const UserServices = ({ userId }) => {
     }
   };
 
+  if (!user) return <div className="text-center mt-10">Loading user data...</div>;
+
   return (
     <div className="max-w-3xl mx-auto mt-10 p-6 bg-white rounded-2xl shadow-lg">
       <h2 className="text-2xl font-bold text-center text-blue-600 mb-6">
-        {user?.name}'s Services
+        {user.name}'s Services
       </h2>
 
       <section className="mb-8">
