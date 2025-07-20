@@ -6,7 +6,6 @@ import { useState, useEffect } from "react";
 export default function UpdateProfile() {
   const [formData, setFormData] = useState({
     name: "",
-    email: "",
     role: "",
     address: "",
     coordinates: {
@@ -14,7 +13,7 @@ export default function UpdateProfile() {
       longitude: "",
     },
     servicesOffered: "",
-    pricing: "",
+    pricing: 0,
     avatar: null,
   });
 
@@ -161,12 +160,26 @@ export default function UpdateProfile() {
         formDataToSend.append("avatar", formData.avatar);
       }
 
+      // ... all your previous code remains the same
+
       if (formData.role === "provider") {
         if (formData.servicesOffered) {
-          formDataToSend.append("servicesOffered", formData.servicesOffered);
+          const cleanedServices = formData.servicesOffered
+            .split(",")
+            .map((s) => s.trim())
+            .filter((s) => s !== "")
+            .join(",");
+          formDataToSend.append("servicesOffered", cleanedServices);
         }
+
         if (formData.pricing) {
-          formDataToSend.append("pricing", formData.pricing);
+          const cleanedPricingArray = formData.pricing
+            .split(",")
+            .map((p) => parseFloat(p.trim()))
+            .filter((p) => !isNaN(p));
+
+          // ✅ FIX: Send as JSON string
+          formDataToSend.append("pricing", JSON.stringify(cleanedPricingArray));
         }
       }
 
@@ -406,6 +419,7 @@ export default function UpdateProfile() {
                     type="text"
                     id="servicesOffered"
                     value={formData.servicesOffered}
+                    readOnly
                     onChange={(e) =>
                       handleInputChange("servicesOffered", e.target.value)
                     }
@@ -427,6 +441,7 @@ export default function UpdateProfile() {
                   <input
                     type="text"
                     id="pricing"
+                    readOnly
                     value={formData.pricing}
                     onChange={(e) =>
                       handleInputChange("pricing", e.target.value)

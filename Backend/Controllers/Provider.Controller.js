@@ -1,13 +1,16 @@
 import { Booking } from "../Models/Booking.Model.js";
 import { User } from "../Models/User.Model.js";
 import { uploadOnCloudinary } from "../utilities/Cloudinary.utilities.js";
+import { deleteFromCloudinaryByUrl } from "../utilities/DeleteFromCloudinary.Utilities.js";
 
 export const getALLNearByProviders = async (req, res) => {
   try {
     const { lat, lng, service } = req.query;
 
     if (!lat || !lng) {
-      return res.status(400).json({ message: "Latitude and longitude are required" });
+      return res
+        .status(400)
+        .json({ message: "Latitude and longitude are required" });
     }
 
     const customerId = req.user?.id;
@@ -82,44 +85,37 @@ export const getSingleProvider = async (req, res) => {
 
 export const updateProviderProfile = async (req, res) => {
   try {
-    let { name, servicesOffered, latitude, longitude, address, pricing } = req.body;
+    let { name, servicesOffered, latitude, longitude, address, pricing } =
+      req.body;
+
     const avatar = req.file?.path;
+
+    servicesOffered = servicesOffered.toLowerCase();
 
     const provider = await User.findById(req.user?.id);
     if (!provider || provider.role !== "provider") {
       return res.status(404).json({ error: "Provider not found." });
     }
 
-    // Avatar update
     if (avatar) {
       const uploadResponse = await uploadOnCloudinary(avatar);
       provider.avatar = uploadResponse.secure_url;
     }
 
-    // Optional fields update
-    if (name) provider.name = name;
-    if (servicesOffered) {
-      provider.servicesOffered = [
-        ...(provider.servicesOffered || []),
-        servicesOffered.toLowerCase(),
-      ];
-    }
-    if (pricing) {
-      provider.Pricing = [...(provider.Pricing || []), pricing];
-    }
-
-    if (!provider.location) provider.location = {};
-
-    if (latitude || longitude) {
-      provider.location.coordinates = [
-        longitude ? parseFloat(longitude) : provider.location.coordinates?.[0],
-        latitude ? parseFloat(latitude) : provider.location.coordinates?.[1],
-      ];
-    }
-
-    if (address) {
-      provider.location.address = address;
-    }
+    provider.name = name || provider.name;
+    provider.servicesOffered = [
+      ...(provider.servicesOffered || []),
+      servicesOffered.toLowerCase(),
+    ];
+    provider.Pricing = [...(provider.Pricing || []), pricing];
+    provider.location = {
+      ...provider.location,
+      coordinates: [
+        longitude || provider.location.coordinates[0],
+        latitude || provider.location.coordinates[1],
+      ],
+      address: address || provider.location.address,
+    };
 
     await provider.save();
     return res.json({ message: "Provider updated", provider });
@@ -178,7 +174,9 @@ export const updateServicePair = async (req, res) => {
     const { index, service, price } = req.body;
 
     if (index === undefined || !service || !price) {
-      return res.status(400).json({ message: "Index, service, and price are required." });
+      return res
+        .status(400)
+        .json({ message: "Index, service, and price are required." });
     }
 
     const user = await User.findById(req.user?.id);
@@ -187,7 +185,9 @@ export const updateServicePair = async (req, res) => {
     }
 
     if (!Array.isArray(user.servicesOffered) || !Array.isArray(user.Pricing)) {
-      return res.status(400).json({ message: "Service or pricing list is invalid." });
+      return res
+        .status(400)
+        .json({ message: "Service or pricing list is invalid." });
     }
 
     if (index < 0 || index >= user.servicesOffered.length) {
@@ -199,7 +199,13 @@ export const updateServicePair = async (req, res) => {
 
     await user.save();
 
-    return res.status(200).json({ message: "Service and pricing updated", services: user.servicesOffered, pricing: user.Pricing });
+    return res
+      .status(200)
+      .json({
+        message: "Service and pricing updated",
+        services: user.servicesOffered,
+        pricing: user.Pricing,
+      });
   } catch (error) {
     console.error("Error updating service pair:", error);
     return res.status(500).json({ message: "Internal server error" });
@@ -228,7 +234,13 @@ export const deleteServicePair = async (req, res) => {
 
     await user.save();
 
-    return res.status(200).json({ message: "Service and pricing deleted", services: user.servicesOffered, pricing: user.Pricing });
+    return res
+      .status(200)
+      .json({
+        message: "Service and pricing deleted",
+        services: user.servicesOffered,
+        pricing: user.Pricing,
+      });
   } catch (error) {
     console.error("Error deleting service pair:", error);
     return res.status(500).json({ message: "Internal server error" });
