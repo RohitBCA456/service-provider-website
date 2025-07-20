@@ -100,11 +100,6 @@ export const updateProviderProfile = async (req, res) => {
     }
 
     provider.name = name || provider.name;
-    provider.servicesOffered = [
-      ...(provider.servicesOffered || []),
-      servicesOffered.toLowerCase(),
-    ];
-    provider.Pricing = [...(provider.Pricing || []), pricing];
     provider.location = {
       ...provider.location,
       coordinates: [
