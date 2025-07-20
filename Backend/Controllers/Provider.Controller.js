@@ -84,16 +84,8 @@ export const getSingleProvider = async (req, res) => {
 
 export const updateProviderProfile = async (req, res) => {
   try {
-    let { name, servicesOffered, latitude, longitude, address, pricing } =
-      req.body;
-
-      console.log(servicesOffered)
-
+    const { name, servicesOffered, latitude, longitude, address, pricing } = req.body;
     const avatar = req.file?.path;
-
-    if (servicesOffered !== "") {
-      servicesOffered = servicesOffered.toLowerCase();
-    }
 
     const provider = await User.findById(req.user?.id);
     if (!provider || provider.role !== "provider") {
@@ -105,20 +97,26 @@ export const updateProviderProfile = async (req, res) => {
       provider.avatar = uploadResponse.secure_url;
     }
 
-    provider.name = name || provider.name;
-    provider.servicesOffered = [
-      ...(provider.servicesOffered || []),
-      servicesOffered.toLowerCase(),
-    ];
-    provider.Pricing = [...(provider.Pricing || []), pricing];
-    provider.location = {
-      ...provider.location,
-      coordinates: [
-        longitude || provider.location.coordinates[0],
-        latitude || provider.location.coordinates[1],
-      ],
-      address: address || provider.location.address,
-    };
+    if (name) provider.name = name;
+
+    if (servicesOffered) {
+      provider.servicesOffered = [
+        ...(provider.servicesOffered || []),
+        servicesOffered.toLowerCase(),
+      ];
+    }
+
+    if (pricing) {
+      provider.Pricing = [...(provider.Pricing || []), pricing];
+    }
+
+    if (latitude && longitude && address) {
+      provider.location = {
+        ...provider.location,
+        coordinates: [longitude, latitude],
+        address: address,
+      };
+    }
 
     await provider.save();
     return res.json({ message: "Provider updated", provider });
@@ -129,6 +127,7 @@ export const updateProviderProfile = async (req, res) => {
       .json({ error: "Internal server error while provider profile update." });
   }
 };
+
 
 export const logoutProvider = async (req, res) => {
   try {
