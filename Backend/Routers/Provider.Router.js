@@ -11,7 +11,12 @@ import { authMiddleware } from "../Middlewares/Auth.Middleware.js";
 
 const router = Router();
 
-router.route("/updateProvider").put(authMiddleware, updateProviderProfile);
+router.put(
+  "/updateProvider",
+  authMiddleware,
+  upload.single("avatar"),
+  updateProviderProfile
+);
 router.route("/getProvider/:providerId").get(getSingleProvider);
 router
   .route("/getAllNearByProviders")

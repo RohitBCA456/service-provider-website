@@ -84,39 +84,49 @@ export const getSingleProvider = async (req, res) => {
 export const updateProviderProfile = async (req, res) => {
   try {
     let { name, servicesOffered, latitude, longitude, address, pricing } = req.body;
-
     const avatar = req.file?.path;
-
-
-    servicesOffered = servicesOffered.toLowerCase();
 
     const provider = await User.findById(req.user?.id);
     if (!provider || provider.role !== "provider") {
       return res.status(404).json({ error: "Provider not found." });
     }
 
+    // Avatar update
     if (avatar) {
       await deleteFromCloudinaryByUrl(provider.avatar);
       const uploadResponse = await uploadOnCloudinary(avatar);
       provider.avatar = uploadResponse.secure_url;
     }
 
-    provider.name = name || provider.name;
-    provider.servicesOffered = [...(provider.servicesOffered || []), servicesOffered.toLowerCase()];
-    provider.Pricing = [...(provider.Pricing || []), pricing];
-    provider.location = {
-      ...provider.location,
-      coordinates: [
-        longitude || provider.location.coordinates[0],
-        latitude || provider.location.coordinates[1],
-      ],
-      address: address || provider.location.address,
-    };
+    // Optional fields update
+    if (name) provider.name = name;
+    if (servicesOffered) {
+      provider.servicesOffered = [
+        ...(provider.servicesOffered || []),
+        servicesOffered.toLowerCase(),
+      ];
+    }
+    if (pricing) {
+      provider.Pricing = [...(provider.Pricing || []), pricing];
+    }
+
+    if (!provider.location) provider.location = {};
+
+    if (latitude || longitude) {
+      provider.location.coordinates = [
+        longitude ? parseFloat(longitude) : provider.location.coordinates?.[0],
+        latitude ? parseFloat(latitude) : provider.location.coordinates?.[1],
+      ];
+    }
+
+    if (address) {
+      provider.location.address = address;
+    }
 
     await provider.save();
     return res.json({ message: "Provider updated", provider });
   } catch (error) {
-    console.log(error)
+    console.log(error);
     return res
       .status(500)
       .json({ error: "Internal server error while provider profile update." });

@@ -29,23 +29,15 @@ export default function UpdateProfile() {
     setTimeout(() => setToast(null), 3000);
   };
 
-  // Fetch current user data
   useEffect(() => {
     const fetchUserData = async () => {
       try {
         const response = await axios.get(
           "https://service-provider-website.onrender.com/api/v1/auth/getCurrentUser",
-          {
-            withCredentials: true,
-          }
+          { withCredentials: true }
         );
 
-        if (!response.ok) {
-          throw new Error("Failed to fetch user data");
-        }
-
-        const data = await response.json();
-        const user = data.user || data;
+        const user = response.data.user || response.data;
 
         setFormData({
           name: user.name || "",
@@ -100,7 +92,6 @@ export default function UpdateProfile() {
         avatar: file,
       }));
 
-      // Create preview
       const reader = new FileReader();
       reader.onloadend = () => {
         setAvatarPreview(reader.result);
@@ -111,7 +102,6 @@ export default function UpdateProfile() {
 
   const handleLocationUpdate = async () => {
     setIsUpdatingLocation(true);
-
     try {
       if (navigator.geolocation) {
         navigator.geolocation.getCurrentPosition(
@@ -129,7 +119,6 @@ export default function UpdateProfile() {
           },
           (error) => {
             console.error("Geolocation error:", error);
-            // Fallback to mock coordinates
             const mockCoordinates = {
               latitude: (Math.random() * 180 - 90).toFixed(6),
               longitude: (Math.random() * 360 - 180).toFixed(6),
@@ -172,7 +161,6 @@ export default function UpdateProfile() {
         formDataToSend.append("avatar", formData.avatar);
       }
 
-      // Add role-specific fields
       if (formData.role === "provider") {
         if (formData.servicesOffered) {
           formDataToSend.append("servicesOffered", formData.servicesOffered);
@@ -187,26 +175,20 @@ export default function UpdateProfile() {
           ? "https://service-provider-website.onrender.com/api/v1/providers/updateProvider"
           : "https://service-provider-website.onrender.com/api/v1/customers/updateCustomer";
 
-      const response = await fetch(endpoint, {
-        method: "PUT",
-        credentials: true,
-        body: formDataToSend,
+      const response = await axios.put(endpoint, formDataToSend, {
+        withCredentials: true,
+        headers: {
+          "Content-Type": "multipart/form-data",
+        },
       });
 
-      if (!response.ok) {
-        const errorData = await response.json();
-        throw new Error(errorData.error || "Failed to update profile");
-      }
-
-      const data = await response.json();
-      console.log("Profile updated:", data);
       showToast("Profile updated successfully!");
     } catch (error) {
       console.error("Error updating profile:", error);
-      showToast(
-        error.message || "Failed to update profile. Please try again.",
-        "error"
-      );
+      const errorMessage =
+        error.response?.data?.error ||
+        "Failed to update profile. Please try again.";
+      showToast(errorMessage, "error");
     } finally {
       setIsSubmitting(false);
     }
@@ -242,7 +224,7 @@ export default function UpdateProfile() {
   }
 
   return (
-    <div className="min-h-screen bg-gray-50 py-8 px-4">
+    <div className="min-h-screen py-8 px-4">
       <div className="max-w-2xl mx-auto">
         {/* Header */}
         <div className="bg-white rounded-lg shadow-sm border border-gray-200 mb-6">
@@ -347,7 +329,7 @@ export default function UpdateProfile() {
                 id="name"
                 value={formData.name}
                 onChange={(e) => handleInputChange("name", e.target.value)}
-                className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-colors"
+                className="w-full px-3 py-2 border text-gray-600 border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-colors"
                 placeholder="Enter your full name"
                 required
               />
@@ -427,7 +409,7 @@ export default function UpdateProfile() {
                     onChange={(e) =>
                       handleInputChange("servicesOffered", e.target.value)
                     }
-                    className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-colors"
+                    className="w-full px-3 text-gray-600 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-colors"
                     placeholder="e.g., web development, graphic design"
                   />
                   <p className="text-xs text-gray-500">
@@ -449,7 +431,7 @@ export default function UpdateProfile() {
                     onChange={(e) =>
                       handleInputChange("pricing", e.target.value)
                     }
-                    className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-colors"
+                    className="w-full px-3 text-gray-600 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-colors"
                     placeholder="e.g., $50/hour, $500 fixed"
                   />
                   <p className="text-xs text-gray-500">
@@ -472,7 +454,7 @@ export default function UpdateProfile() {
                 value={formData.address}
                 onChange={(e) => handleInputChange("address", e.target.value)}
                 rows={3}
-                className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-colors resize-none"
+                className="w-full px-3 text-gray-600 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-colors resize-none"
                 placeholder="Enter your full address"
                 required
               />
@@ -496,7 +478,7 @@ export default function UpdateProfile() {
                       onChange={(e) =>
                         handleCoordinateChange("latitude", e.target.value)
                       }
-                      className="w-full px-2 py-1 text-sm border border-gray-300 rounded font-mono focus:outline-none focus:ring-1 focus:ring-blue-500"
+                      className="w-full px-2 text-gray-600 py-1 text-sm border border-gray-300 rounded font-mono focus:outline-none focus:ring-1 focus:ring-blue-500"
                       placeholder="0.000000"
                     />
                   </div>
@@ -511,7 +493,7 @@ export default function UpdateProfile() {
                       onChange={(e) =>
                         handleCoordinateChange("longitude", e.target.value)
                       }
-                      className="w-full px-2 py-1 text-sm border border-gray-300 rounded font-mono focus:outline-none focus:ring-1 focus:ring-blue-500"
+                      className="w-full text-gray-600 px-2 py-1 text-sm border border-gray-300 rounded font-mono focus:outline-none focus:ring-1 focus:ring-blue-500"
                       placeholder="0.000000"
                     />
                   </div>
