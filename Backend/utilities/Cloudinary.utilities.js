@@ -11,6 +11,9 @@ cloudinary.config({
   secure: true,
 });
 
+console.log("Cloudinary loaded config:", cloudinary.config());
+
+
 const uploadOnCloudinary = async (localFilePath) => {
   console.log("Cloudinary ENV:", {
     name: process.env.CLOUD_NAME,
