@@ -1,20 +1,25 @@
 "use client";
-
 import axios from "axios";
 import { useState, useEffect } from "react";
 
 export default function UpdateProfile() {
+  // Data for form submission (only editable fields)
   const [formData, setFormData] = useState({
     name: "",
-    role: "",
     address: "",
     coordinates: {
       latitude: "",
       longitude: "",
     },
-    servicesOffered: "",
-    pricing: 0,
     avatar: null,
+  });
+
+  // Data for display only (read-only fields)
+  const [displayData, setDisplayData] = useState({
+    email: "",
+    role: "",
+    servicesOffered: "",
+    pricing: "",
   });
 
   const [isLoading, setIsLoading] = useState(true);
@@ -33,23 +38,29 @@ export default function UpdateProfile() {
       try {
         const response = await axios.get(
           "https://service-provider-website.onrender.com/api/v1/auth/getCurrentUser",
-          { withCredentials: true }
+          {
+            withCredentials: true,
+          }
         );
-
         const user = response.data.user || response.data;
 
+        // Set form data (editable fields only)
         setFormData({
           name: user.name || "",
-          email: user.email || "",
-          role: user.role || "",
           address: user.location?.address || "",
           coordinates: {
             latitude: user.location?.coordinates?.[1] || "",
             longitude: user.location?.coordinates?.[0] || "",
           },
+          avatar: null,
+        });
+
+        // Set display data (read-only fields)
+        setDisplayData({
+          email: user.email || "",
+          role: user.role || "",
           servicesOffered: user.servicesOffered?.join(", ") || "",
           pricing: user.Pricing?.join(", ") || "",
-          avatar: null,
         });
 
         if (user.avatar) {
@@ -90,7 +101,6 @@ export default function UpdateProfile() {
         ...prev,
         avatar: file,
       }));
-
       const reader = new FileReader();
       reader.onloadend = () => {
         setAvatarPreview(reader.result);
@@ -141,27 +151,27 @@ export default function UpdateProfile() {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-
     if (!formData.name || !formData.address) {
       showToast("Please fill in all required fields.", "error");
       return;
     }
 
     setIsSubmitting(true);
-
     try {
+      // Create FormData with only the fields that should be sent to backend
       const formDataToSend = new FormData();
       formDataToSend.append("name", formData.name);
       formDataToSend.append("address", formData.address);
       formDataToSend.append("latitude", formData.coordinates.latitude);
       formDataToSend.append("longitude", formData.coordinates.longitude);
 
+      // Only include avatar if a new one was selected
       if (formData.avatar) {
         formDataToSend.append("avatar", formData.avatar);
       }
 
       const endpoint =
-        formData.role === "provider"
+        displayData.role === "provider"
           ? "https://service-provider-website.onrender.com/api/v1/providers/updateProvider"
           : "https://service-provider-website.onrender.com/api/v1/customers/updateCustomer";
 
@@ -336,7 +346,7 @@ export default function UpdateProfile() {
               <input
                 type="email"
                 id="email"
-                value={formData.email}
+                value={displayData.email}
                 className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm bg-gray-50 text-gray-500 cursor-not-allowed"
                 placeholder="Email address"
                 readOnly
@@ -362,7 +372,7 @@ export default function UpdateProfile() {
                       strokeLinejoin="round"
                       strokeWidth={2}
                       d={
-                        formData.role === "provider"
+                        displayData.role === "provider"
                           ? "M21 13.255A23.931 23.931 0 0112 15c-3.183 0-6.22-.62-9-1.745M16 6V4a2 2 0 00-2-2h-4a2 2 0 00-2-2v2m8 0V6a2 2 0 012 2v6a2 2 0 01-2 2H8a2 2 0 01-2-2V8a2 2 0 012-2V6"
                           : "M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"
                       }
@@ -370,10 +380,10 @@ export default function UpdateProfile() {
                   </svg>
                   <div>
                     <div className="font-medium text-blue-700 capitalize">
-                      {formData.role}
+                      {displayData.role}
                     </div>
                     <div className="text-sm text-blue-600">
-                      {formData.role === "provider"
+                      {displayData.role === "provider"
                         ? "Offering services"
                         : "Looking for services"}
                     </div>
@@ -382,52 +392,30 @@ export default function UpdateProfile() {
               </div>
             </div>
 
-            {/* Provider-specific fields */}
-            {formData.role === "provider" && (
+            {/* Provider-specific fields (Read-only) */}
+            {displayData.role === "provider" && (
               <>
                 <div className="space-y-2">
-                  <label
-                    htmlFor="servicesOffered"
-                    className="block text-sm font-medium text-gray-700"
-                  >
+                  <label className="block text-sm font-medium text-gray-700">
                     Services Offered
                   </label>
-                  <input
-                    type="text"
-                    id="servicesOffered"
-                    value={formData.servicesOffered}
-                    readOnly
-                    onChange={(e) =>
-                      handleInputChange("servicesOffered", e.target.value)
-                    }
-                    className="w-full px-3 text-gray-600 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-colors"
-                    placeholder="e.g., web development, graphic design"
-                  />
+                  <div className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm bg-gray-50 text-gray-500 min-h-[40px] flex items-center">
+                    {displayData.servicesOffered || "No services specified"}
+                  </div>
                   <p className="text-xs text-gray-500">
-                    Separate multiple services with commas
+                    Services cannot be edited from this page
                   </p>
                 </div>
 
                 <div className="space-y-2">
-                  <label
-                    htmlFor="pricing"
-                    className="block text-sm font-medium text-gray-700"
-                  >
+                  <label className="block text-sm font-medium text-gray-700">
                     Pricing
                   </label>
-                  <input
-                    type="text"
-                    id="pricing"
-                    readOnly
-                    value={formData.pricing}
-                    onChange={(e) =>
-                      handleInputChange("pricing", e.target.value)
-                    }
-                    className="w-full px-3 text-gray-600 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-colors"
-                    placeholder="e.g., $50/hour, $500 fixed"
-                  />
+                  <div className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm bg-gray-50 text-gray-500 min-h-[40px] flex items-center">
+                    {displayData.pricing || "No pricing specified"}
+                  </div>
                   <p className="text-xs text-gray-500">
-                    Separate multiple pricing options with commas
+                    Pricing cannot be edited from this page
                   </p>
                 </div>
               </>

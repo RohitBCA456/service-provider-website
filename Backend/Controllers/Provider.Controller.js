@@ -87,9 +87,11 @@ export const updateProviderProfile = async (req, res) => {
     let { name, servicesOffered, latitude, longitude, address, pricing } =
       req.body;
 
+      console.log(servicesOffered)
+
     const avatar = req.file?.path;
 
-    if (servicesOffered) {
+    if (servicesOffered !== "") {
       servicesOffered = servicesOffered.toLowerCase();
     }
 
