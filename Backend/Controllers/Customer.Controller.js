@@ -1,6 +1,5 @@
 import { User } from "../Models/User.Model.js";
 import { uploadOnCloudinary } from "../utilities/Cloudinary.utilities.js";
-import { deleteFromCloudinaryByUrl } from "../utilities/DeleteFromCloudinary.Utilities.js";
 
 // export const customerLogin = async (req, res) => {
 //   try {
@@ -61,7 +60,6 @@ export const updateCustomerProfile = async (req, res) => {
     }
 
     if (avatar) {
-      await deleteFromCloudinaryByUrl(customer.avatar);
       const uploadResponse = await uploadOnCloudinary(avatar);
       customer.avatar = uploadResponse.secure_url;
     }
