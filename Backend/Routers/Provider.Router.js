@@ -18,13 +18,15 @@ router.put(
   upload.single("avatar"),
   updateProviderProfile
 );
-router.route("/getProvider/:providerId").get(getSingleProvider);
-router
-  .route("/getAllNearByProviders")
-  .get(authMiddleware, getALLNearByProviders);
-authMiddleware,
-  router.route("/logoutProvider").get(authMiddleware, logoutProvider);
-router.route("/updateServicePairs").put(authMiddleware, updateServicePair);
-router.route("/deleteServicePairs").delete(authMiddleware, deleteServicePair);
+
+router.get("/getProvider/:providerId", getSingleProvider);
+
+router.get("/getAllNearByProviders", authMiddleware, getALLNearByProviders);
+
+router.get("/logoutProvider", authMiddleware, logoutProvider);
+
+router.put("/updateServicePairs", authMiddleware, updateServicePair);
+
+router.delete("/deleteServicePairs", authMiddleware, deleteServicePair);
 
 export default router;
