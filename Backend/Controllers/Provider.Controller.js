@@ -1,7 +1,6 @@
 import { Booking } from "../Models/Booking.Model.js";
 import { User } from "../Models/User.Model.js";
 import { uploadOnCloudinary } from "../utilities/Cloudinary.utilities.js";
-import { deleteFromCloudinaryByUrl } from "../utilities/DeleteFromCloudinary.Utilities.js";
 
 export const getALLNearByProviders = async (req, res) => {
   try {
@@ -93,7 +92,6 @@ export const updateProviderProfile = async (req, res) => {
 
     // Avatar update
     if (avatar) {
-      await deleteFromCloudinaryByUrl(provider.avatar);
       const uploadResponse = await uploadOnCloudinary(avatar);
       provider.avatar = uploadResponse.secure_url;
     }
