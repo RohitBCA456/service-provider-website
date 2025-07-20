@@ -170,6 +170,8 @@ export default function UpdateProfile() {
         formDataToSend.append("avatar", formData.avatar);
       }
 
+      console.log(formData)
+      
       const endpoint =
         displayData.role === "provider"
           ? "https://service-provider-website.onrender.com/api/v1/providers/updateProvider"

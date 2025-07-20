@@ -87,6 +87,8 @@ export const updateProviderProfile = async (req, res) => {
     const { name, servicesOffered, latitude, longitude, address, pricing } = req.body;
     const avatar = req.file?.path;
 
+    console.log(avatar)
+
     const provider = await User.findById(req.user?.id);
     if (!provider || provider.role !== "provider") {
       return res.status(404).json({ error: "Provider not found." });
