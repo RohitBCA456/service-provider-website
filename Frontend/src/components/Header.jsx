@@ -45,7 +45,7 @@ const ServiceFinderHeader = ({ theme, setTheme }) => {
         }
       )
       .then(() => {
-        navigate("/login");
+        navigate("/Login");
       });
   };
 
