@@ -8,6 +8,7 @@ import {
   deleteServicePair,
 } from "../Controllers/Provider.Controller.js";
 import { authMiddleware } from "../Middlewares/Auth.Middleware.js";
+import { upload } from "../Middlewares/Multer.Middleware.js";
 
 const router = Router();
 
