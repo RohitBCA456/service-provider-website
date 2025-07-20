@@ -16,8 +16,9 @@ router.route("/getProvider/:providerId").get(getSingleProvider);
 router
   .route("/getAllNearByProviders")
   .get(authMiddleware, getALLNearByProviders);
-router.route("/logoutProvider").get(authMiddleware, logoutProvider);
-router.route("/updateServicePairs").put(updateServicePair);
-router.route("/deleteServicePairs").delete(deleteServicePair);
+authMiddleware,
+  router.route("/logoutProvider").get(authMiddleware, logoutProvider);
+router.route("/updateServicePairs").put(authMiddleware, updateServicePair);
+router.route("/deleteServicePairs").delete(authMiddleware, deleteServicePair);
 
 export default router;
