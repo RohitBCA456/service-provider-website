@@ -35,9 +35,12 @@ const ServiceFinderHeader = ({ theme, setTheme }) => {
   const handleLogout = async () => {
     toast
       .promise(
-        axios.get("https://service-provider-website.onrender.com/api/v1/providers/logoutProvider", {
-          withCredentials: true,
-        }),
+        axios.get(
+          "https://service-provider-website.onrender.com/api/v1/providers/logoutProvider",
+          {
+            withCredentials: true,
+          }
+        ),
         {
           loading: "Logging out...",
           success: "Logout successful!",
@@ -183,10 +186,12 @@ const ServiceFinderHeader = ({ theme, setTheme }) => {
           {dropdownOpen && (
             <div className="absolute top-14 right-0 w-48 bg-white dark:bg-zinc-800 shadow-lg border border-gray-100 dark:border-zinc-700 rounded-md overflow-hidden z-50">
               {/* Update Profile */}
-              <button className="flex items-center gap-2 w-full text-left px-4 py-2 text-sm text-gray-700 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-zinc-700">
-                <PersonIcon className="w-4 h-4" />
-                Update Profile
-              </button>
+              <Link to={"/UpdateProfile"}>
+                <button className="flex items-center gap-2 w-full text-left px-4 py-2 text-sm text-gray-700 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-zinc-700">
+                  <PersonIcon className="w-4 h-4" />
+                  Update Profile
+                </button>
+              </Link>
 
               {/* Logout */}
               <button

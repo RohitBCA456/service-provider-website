@@ -14,6 +14,7 @@ import StackListActionMenu from "./components/ChatMenu.jsx";
 import ChatPage from "./pages/ChatUi.jsx";
 import AddServicePage from "./pages/AddServicePage.jsx";
 import ManageService from "./pages/ManageService.jsx";
+import UpdateProfile from "./pages/updateProfilePage.jsx";
 
 const router = createBrowserRouter([
   {
@@ -31,6 +32,7 @@ const router = createBrowserRouter([
       { path: "/ChatRoom/:userId", element: <ChatPage /> },
       { path: "/AddService", element: <AddServicePage /> },
       { path: "/ManageService", element: <ManageService /> },
+      { path: "/UpdateProfile", element: <UpdateProfile /> },
     ],
   },
 ]);

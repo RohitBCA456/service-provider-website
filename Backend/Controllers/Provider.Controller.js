@@ -85,13 +85,8 @@ export const updateProviderProfile = async (req, res) => {
   try {
     let { name, servicesOffered, latitude, longitude, address, pricing } = req.body;
 
-    console.log(servicesOffered, pricing)
-
     const avatar = req.file?.path;
 
-    if (![name, servicesOffered, latitude, longitude, address, pricing]) {
-      return res.status(400).json({ message: "All fields are required." });
-    }
 
     servicesOffered = servicesOffered.toLowerCase();
 
