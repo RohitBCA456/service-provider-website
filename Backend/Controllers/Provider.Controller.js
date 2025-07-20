@@ -1,7 +1,6 @@
 import { Booking } from "../Models/Booking.Model.js";
 import { User } from "../Models/User.Model.js";
 import { uploadOnCloudinary } from "../utilities/Cloudinary.utilities.js";
-import { deleteFromCloudinaryByUrl } from "../utilities/DeleteFromCloudinary.Utilities.js";
 
 export const getALLNearByProviders = async (req, res) => {
   try {
