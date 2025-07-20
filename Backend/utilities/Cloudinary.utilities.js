@@ -2,23 +2,26 @@ import { v2 as cloudinary } from "cloudinary";
 import fs from "fs";
 import dotenv from "dotenv";
 
+// Load env vars early
 dotenv.config();
 
+// Use standard Cloudinary keys
 cloudinary.config({
-  cloud_name: process.env.CLOUD_NAME,
-  api_key: process.env.API_KEY,
-  api_secret: process.env.API_SECRET,
+  cloud_name: process.env.CLOUDINARY_CLOUD_NAME,
+  api_key: process.env.CLOUDINARY_API_KEY,
+  api_secret: process.env.CLOUDINARY_API_SECRET,
   secure: true,
 });
 
-console.log("Cloudinary loaded config:", cloudinary.config());
-
+// Debug: confirm actual values passed to Cloudinary
+console.log("✅ Cloudinary final config:", cloudinary.config());
 
 const uploadOnCloudinary = async (localFilePath) => {
-  console.log("Cloudinary ENV:", {
-    name: process.env.CLOUD_NAME,
-    key: process.env.API_KEY,
-    secret: process.env.API_SECRET ? "✔️ Loaded" : "❌ Missing",
+  console.log("📦 Uploading file:", localFilePath);
+  console.log("🌐 Cloudinary ENV:", {
+    name: process.env.CLOUDINARY_CLOUD_NAME,
+    key: process.env.CLOUDINARY_API_KEY,
+    secret: process.env.CLOUDINARY_API_SECRET ? "✔️ Loaded" : "❌ Missing",
   });
 
   try {
@@ -26,17 +29,18 @@ const uploadOnCloudinary = async (localFilePath) => {
 
     const response = await cloudinary.uploader.upload(localFilePath, {
       resource_type: "auto",
-      timeout: 120000,
+      timeout: 120000, // 2 minutes
     });
 
-    // Delete only after successful upload
+    // Delete local file only after successful upload
     if (fs.existsSync(localFilePath)) {
       fs.unlinkSync(localFilePath);
     }
 
+    console.log("✅ Cloudinary upload success:", response.secure_url);
     return response;
   } catch (error) {
-    console.error("Cloudinary upload failed:", error);
+    console.error("❌ Cloudinary upload failed:", error.message || error);
     return null;
   }
 };
