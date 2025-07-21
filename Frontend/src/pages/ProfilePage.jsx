@@ -2,6 +2,7 @@ import React, { useEffect, useState } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
 import axios from "axios";
 import toast from "react-hot-toast";
+import Loader from "../components/Loader";
 
 const ProviderProfile = () => {
   const location = useLocation();
@@ -68,7 +69,7 @@ const ProviderProfile = () => {
     }
   };
 
-  if (loading) return <div className="p-6">Loading...</div>;
+  if (loading) return <Loader />;
   if (error) return <div className="p-6 text-red-600">{error}</div>;
   if (!provider) return <div className="p-6">Provider not found.</div>;
 
