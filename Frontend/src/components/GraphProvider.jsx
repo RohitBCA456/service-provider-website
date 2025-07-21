@@ -9,6 +9,7 @@ import {
   Rectangle,
   ReferenceLine,
   Label,
+  ResponsiveContainer,
 } from "recharts";
 import { motion } from "framer-motion";
 
@@ -28,33 +29,6 @@ const avgBookings = Math.round(totalBookings / weeklyData.length);
 const bookingGoal = 40;
 
 function Step({ step, currentStep }) {
-  // ADD THESE WHEN INTEGRATE BACKEND TO THE WIZARD
-  //           [
-  //   {
-  //     "step": 1,
-  //     "title": "New Bookings",
-  //     "description": "You have 3 new bookings waiting for approval.",
-  //     "status": "pending"
-  //   },
-  //   {
-  //     "step": 2,
-  //     "title": "Accepted Bookings",
-  //     "description": "You have 5 upcoming appointments.",
-  //     "status": "accepted"
-  //   },
-  //   {
-  //     "step": 3,
-  //     "title": "Rejected Bookings",
-  //     "description": "You have rejected 2 requests this week.",
-  //     "status": "rejected"
-  //   },
-  //   {
-  //     "step": 4,
-  //     "title": "Add New Services",
-  //     "description": "Keep your service list updated for better reach.",
-  //     "status": "service"
-  //   }
-  // ]
   const status =
     currentStep === step
       ? "active"
@@ -144,63 +118,63 @@ export default function ProviderHome() {
   const [step, setStep] = useState(1);
 
   return (
-    <div className="min-h-screen p-10 mt-5">
-      <h1 className="text-3xl font-bold mb-6">Provider Dashboard</h1>
-      <div className="flex flex-col lg:flex-row gap-8">
+    <div className="min-h-screen p-4 sm:p-6 lg:p-10 mt-5">
+      <h1 className="text-2xl sm:text-3xl font-bold mb-6">
+        Provider Dashboard
+      </h1>
+
+      <div className="flex flex-col lg:flex-row flex-wrap gap-6">
         {/* Left Chart Panel */}
-        <div className="w-full lg:w-1/2 bg-white p-6 rounded-lg shadow">
+        <div className="w-full lg:w-1/2 bg-white p-5 sm:p-6 rounded-lg shadow">
           <div className="text-sm text-gray-500">This Week</div>
-          <div className="text-4xl font-bold text-gray-900">
+          <div className="text-3xl sm:text-4xl font-bold text-gray-900">
             {totalBookings}{" "}
             <span className="text-sm font-normal text-gray-400">bookings</span>
           </div>
 
-          <div className="mt-6">
-            <BarChart
-              width={400}
-              height={200}
-              data={weeklyData}
-              margin={{ left: -10, right: -10 }}
-            >
-              <XAxis
-                dataKey="date"
-                tickFormatter={(value) =>
-                  new Date(value).toLocaleDateString("en-US", {
-                    weekday: "short",
-                  })
-                }
-                tickLine={false}
-                axisLine={false}
-                tickMargin={6}
-              />
-              <Tooltip
-                cursor={{ fill: "transparent" }}
-                labelFormatter={(value) =>
-                  new Date(value).toLocaleDateString("en-US", {
-                    day: "numeric",
-                    month: "long",
-                  })
-                }
-              />
-              <Bar
-                dataKey="bookings"
-                fill="#3B82F6"
-                radius={[5, 5, 0, 0]}
-                activeBar={<Rectangle fill="#2563EB" />}
-              />
-              <ReferenceLine
-                y={avgBookings}
-                stroke="#999"
-                strokeDasharray="3 3"
-              >
-                <Label
-                  value={`Avg: ${avgBookings}`}
-                  position="insideTopLeft"
-                  offset={10}
-                  fill="#333"
+          <div className="mt-6 w-full h-64">
+            <ResponsiveContainer width="100%" height="100%">
+              <BarChart data={weeklyData} margin={{ left: -10, right: -10 }}>
+                <XAxis
+                  dataKey="date"
+                  tickFormatter={(value) =>
+                    new Date(value).toLocaleDateString("en-US", {
+                      weekday: "short",
+                    })
+                  }
+                  tickLine={false}
+                  axisLine={false}
+                  tickMargin={6}
                 />
-              </ReferenceLine>
-            </BarChart>
+                <Tooltip
+                  cursor={{ fill: "transparent" }}
+                  labelFormatter={(value) =>
+                    new Date(value).toLocaleDateString("en-US", {
+                      day: "numeric",
+                      month: "long",
+                    })
+                  }
+                />
+                <Bar
+                  dataKey="bookings"
+                  fill="#3B82F6"
+                  radius={[5, 5, 0, 0]}
+                  activeBar={<Rectangle fill="#2563EB" />}
+                />
+                <ReferenceLine
+                  y={avgBookings}
+                  stroke="#999"
+                  strokeDasharray="3 3"
+                >
+                  <Label
+                    value={`Avg: ${avgBookings}`}
+                    position="insideTopLeft"
+                    offset={10}
+                    fill="#333"
+                  />
+                </ReferenceLine>
+              </BarChart>
+            </ResponsiveContainer>
           </div>
 
           <div className="mt-4 text-sm text-gray-600">
@@ -220,17 +194,17 @@ export default function ProviderHome() {
         {/* Right Wizard Panel */}
         <div className="w-full lg:w-1/2 flex flex-col justify-center items-center">
           <div className="w-full max-w-md rounded-lg bg-white shadow-xl">
-            <div className="flex justify-between rounded p-8">
+            <div className="flex justify-between rounded p-6 sm:p-8">
               <Step step={1} currentStep={step} />
               <Step step={2} currentStep={step} />
               <Step step={3} currentStep={step} />
               <Step step={4} currentStep={step} />
             </div>
 
-            <div className="space-y-4 px-8 pb-4">
+            <div className="space-y-4 px-6 sm:px-8 pb-4">
               {step === 1 && (
                 <div>
-                  <h2 className="text-xl font-semibold text-gray-800">
+                  <h2 className="text-lg sm:text-xl font-semibold text-gray-800">
                     New Bookings
                   </h2>
                   <p className="text-gray-600">
@@ -242,19 +216,19 @@ export default function ProviderHome() {
 
               {step === 2 && (
                 <div>
-                  <h2 className="text-xl font-semibold text-gray-800">
+                  <h2 className="text-lg sm:text-xl font-semibold text-gray-800">
                     Accepted Bookings
                   </h2>
                   <p className="text-gray-600">
-                    See the list of <strong>accepted bookings</strong> and their
-                    upcoming dates.
+                    See the list of <strong>accepted bookings</strong> and
+                    their upcoming dates.
                   </p>
                 </div>
               )}
 
               {step === 3 && (
                 <div>
-                  <h2 className="text-xl font-semibold text-gray-800">
+                  <h2 className="text-lg sm:text-xl font-semibold text-gray-800">
                     Rejected Bookings
                   </h2>
                   <p className="text-gray-600">
@@ -266,7 +240,7 @@ export default function ProviderHome() {
 
               {step === 4 && (
                 <div>
-                  <h2 className="text-xl font-semibold text-gray-800">
+                  <h2 className="text-lg sm:text-xl font-semibold text-gray-800">
                     Add New Services
                   </h2>
                   <p className="text-gray-600">
@@ -277,21 +251,21 @@ export default function ProviderHome() {
               )}
             </div>
 
-            <div className="px-8 pb-8">
-              <div className="mt-10 flex justify-between">
+            <div className="px-6 sm:px-8 pb-8">
+              <div className="mt-6 flex justify-between">
                 <button
                   onClick={() => setStep(step < 2 ? step : step - 1)}
                   className={`${
                     step === 1 ? "pointer-events-none opacity-50" : ""
-                  } duration-350 rounded px-2 py-1 text-neutral-400 transition hover:text-neutral-700`}
+                  } duration-300 rounded px-2 py-1 text-neutral-400 transition hover:text-neutral-700`}
                 >
                   Back
                 </button>
                 <button
-                  onClick={() => setStep(step > 4 ? step : step + 1)}
+                  onClick={() => setStep(step >= 4 ? step : step + 1)}
                   className={`${
-                    step > 4 ? "pointer-events-none opacity-50" : ""
-                  } duration-350 flex items-center justify-center rounded-full bg-blue-500 py-1.5 px-3.5 font-medium tracking-tight text-white transition hover:bg-blue-600 active:bg-blue-700`}
+                    step >= 4 ? "pointer-events-none opacity-50" : ""
+                  } duration-300 flex items-center justify-center rounded-full bg-blue-500 py-1.5 px-4 font-medium text-white transition hover:bg-blue-600 active:bg-blue-700`}
                 >
                   Continue
                 </button>
