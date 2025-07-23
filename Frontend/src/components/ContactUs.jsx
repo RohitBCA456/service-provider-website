@@ -9,6 +9,7 @@ export const ContactUsMapForm = () => {
     sendCopy: true,
   });
 
+  const [loading, setLoading] = useState(false);
   const [status, setStatus] = useState("");
 
   const handleChange = (e) => {
@@ -21,7 +22,8 @@ export const ContactUsMapForm = () => {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    setStatus("Sending...");
+    setLoading(true);
+    setStatus("");
 
     try {
       const res = await axios.post(
@@ -37,6 +39,8 @@ export const ContactUsMapForm = () => {
     } catch (err) {
       console.error("Error sending message:", err);
       setStatus("❌ Failed to send message. Please try again later.");
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -132,9 +136,10 @@ export const ContactUsMapForm = () => {
 
                 <button
                   type="submit"
-                  className="w-full rounded bg-sky-500 text-white px-6 py-2 text-sm font-medium hover:bg-sky-600 transition"
+                  disabled={loading}
+                  className="w-full rounded bg-sky-500 text-white px-6 py-2 text-sm font-medium hover:bg-sky-600 transition disabled:opacity-50 disabled:cursor-not-allowed"
                 >
-                  Send Message
+                  {loading ? "Sending..." : "Send Message"}
                 </button>
 
                 {status && (
@@ -146,73 +151,43 @@ export const ContactUsMapForm = () => {
             {/* Contact Details */}
             <div className="w-full lg:w-7/12">
               <div className="flex flex-wrap">
-                <div className="w-full md:w-6/12 lg:w-full xl:w-6/12 mb-6">
-                  <div className="flex items-start">
-                    <div className="bg-sky-200 p-4 rounded-md text-sky-700">
-                      📧
-                    </div>
-                    <div className="ml-4">
-                      <p className="font-bold mb-1 text-gray-500">
-                        Support Email
-                      </p>
-                      <p className="text-sm text-neutral-600">
-                        help@servicefinder.com
-                      </p>
-                    </div>
-                  </div>
-                </div>
-
-                <div className="w-full md:w-6/12 lg:w-full xl:w-6/12 mb-6">
-                  <div className="flex items-start">
-                    <div className="bg-sky-200 p-4 rounded-md text-sky-700">
-                      📍
-                    </div>
-                    <div className="ml-4">
-                      <p className="font-bold mb-1 text-gray-500">
-                        Office Address
-                      </p>
-                      <p className="text-sm text-neutral-600">
-                        123 Service Lane, Sector 45, <br /> New Delhi, India
-                      </p>
-                    </div>
-                  </div>
-                </div>
-
-                <div className="w-full md:w-6/12 lg:w-full xl:w-6/12 mb-6">
-                  <div className="flex items-start">
-                    <div className="bg-sky-200 p-4 rounded-md text-sky-700">
-                      ☎️
-                    </div>
-                    <div className="ml-4">
-                      <p className="font-bold mb-1 text-gray-500">
-                        Land Line
-                      </p>
-                      <p className="text-sm text-neutral-600">
-                        +91 (011) 456-7890
-                      </p>
-                    </div>
-                  </div>
-                </div>
-
-                <div className="w-full md:w-6/12 lg:w-full xl:w-6/12">
-                  <div className="flex items-start">
-                    <div className="bg-sky-200 p-4 rounded-md text-sky-700">
-                      📱
-                    </div>
-                    <div className="ml-4">
-                      <p className="font-bold mb-1 text-gray-500">Mobile</p>
-                      <p className="text-sm text-neutral-600">
-                        +91 9876543210
-                      </p>
-                    </div>
-                  </div>
-                </div>
+                <ContactDetail
+                  icon="📧"
+                  title="Support Email"
+                  value="help@servicefinder.com"
+                />
+                <ContactDetail
+                  icon="📍"
+                  title="Office Address"
+                  value="123 Service Lane, Sector 45, New Delhi, India"
+                />
+                <ContactDetail
+                  icon="☎️"
+                  title="Land Line"
+                  value="+91 (011) 456-7890"
+                />
+                <ContactDetail
+                  icon="📱"
+                  title="Mobile"
+                  value="+91 9876543210"
+                />
               </div>
             </div>
-            {/* End Contact Details */}
           </div>
         </div>
       </div>
     </section>
   );
 };
+
+const ContactDetail = ({ icon, title, value }) => (
+  <div className="w-full md:w-6/12 lg:w-full xl:w-6/12 mb-6">
+    <div className="flex items-start">
+      <div className="bg-sky-200 p-4 rounded-md text-sky-700">{icon}</div>
+      <div className="ml-4">
+        <p className="font-bold mb-1 text-gray-500">{title}</p>
+        <p className="text-sm text-neutral-600 whitespace-pre-line">{value}</p>
+      </div>
+    </div>
+  </div>
+);
