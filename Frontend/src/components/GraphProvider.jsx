@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useEffect } from "react";
+import React, { useState } from "react";
 import {
   BarChart,
   Bar,
@@ -12,36 +12,22 @@ import {
   ResponsiveContainer,
 } from "recharts";
 import { motion } from "framer-motion";
-import axios from "axios";
 
-// CheckIcon Component
-function CheckIcon(props) {
-  return (
-    <svg
-      {...props}
-      fill="none"
-      viewBox="0 0 24 24"
-      stroke="currentColor"
-      strokeWidth={3}
-    >
-      <motion.path
-        initial={{ pathLength: 0 }}
-        animate={{ pathLength: 1 }}
-        transition={{
-          delay: 0.2,
-          type: "tween",
-          ease: "easeOut",
-          duration: 0.3,
-        }}
-        strokeLinecap="round"
-        strokeLinejoin="round"
-        d="M5 13l4 4L19 7"
-      />
-    </svg>
-  );
-}
+// Sample data
+const weeklyData = [
+  { date: "2024-07-08", bookings: 3 },
+  { date: "2024-07-09", bookings: 5 },
+  { date: "2024-07-10", bookings: 2 },
+  { date: "2024-07-11", bookings: 6 },
+  { date: "2024-07-12", bookings: 4 },
+  { date: "2024-07-13", bookings: 7 },
+  { date: "2024-07-14", bookings: 5 },
+];
 
-// Step Component
+const totalBookings = weeklyData.reduce((sum, item) => sum + item.bookings, 0);
+const avgBookings = Math.round(totalBookings / weeklyData.length);
+const bookingGoal = 40;
+
 function Step({ step, currentStep }) {
   const status =
     currentStep === step
@@ -54,10 +40,20 @@ function Step({ step, currentStep }) {
     <motion.div animate={status} className="relative">
       <motion.div
         variants={{
-          active: { scale: 1, transition: { delay: 0, duration: 0.2 } },
-          complete: { scale: 1.25 },
+          active: {
+            scale: 1,
+            transition: { delay: 0, duration: 0.2 },
+          },
+          complete: {
+            scale: 1.25,
+          },
         }}
-        transition={{ duration: 0.6, delay: 0.2, type: "tween", ease: "circOut" }}
+        transition={{
+          duration: 0.6,
+          delay: 0.2,
+          type: "tween",
+          ease: "circOut",
+        }}
         className="absolute inset-0 rounded-full bg-blue-200"
       />
       <motion.div
@@ -92,46 +88,40 @@ function Step({ step, currentStep }) {
   );
 }
 
-// Main Component
+function CheckIcon(props) {
+  return (
+    <svg
+      {...props}
+      fill="none"
+      viewBox="0 0 24 24"
+      stroke="currentColor"
+      strokeWidth={3}
+    >
+      <motion.path
+        initial={{ pathLength: 0 }}
+        animate={{ pathLength: 1 }}
+        transition={{
+          delay: 0.2,
+          type: "tween",
+          ease: "easeOut",
+          duration: 0.3,
+        }}
+        strokeLinecap="round"
+        strokeLinejoin="round"
+        d="M5 13l4 4L19 7"
+      />
+    </svg>
+  );
+}
+
 export default function ProviderHome() {
   const [step, setStep] = useState(1);
-  const [weeklyData, setWeeklyData] = useState(null);
-
-  useEffect(() => {
-    const fetchStats = async () => {
-      try {
-        const res = await axios.get("/api/bookings/stats", {
-          withCredentials: true, // use if cookies carry auth token
-        });
-        setWeeklyData(res.data.weeklyData || []);
-      } catch (err) {
-        console.error("Failed to fetch booking stats", err);
-        setWeeklyData([]); // fallback to empty
-      }
-    };
-
-    fetchStats();
-  }, []);
-
-  // Show loading until data is ready
-  if (!Array.isArray(weeklyData)) {
-    return (
-      <div className="p-10 text-center text-gray-600 text-lg">
-        Loading provider dashboard...
-      </div>
-    );
-  }
-
-  const totalBookings = weeklyData.reduce((sum, item) => sum + item.bookings, 0);
-  const avgBookings =
-    weeklyData.length > 0
-      ? Math.round(totalBookings / weeklyData.length)
-      : 0;
-  const bookingGoal = 40;
 
   return (
     <div className="min-h-screen p-4 sm:p-6 lg:p-10 mt-5">
-      <h1 className="text-2xl sm:text-3xl font-bold mb-6">Provider Dashboard</h1>
+      <h1 className="text-2xl sm:text-3xl font-bold mb-6">
+        Provider Dashboard
+      </h1>
 
       <div className="flex flex-col lg:flex-row flex-wrap gap-6">
         {/* Left Chart Panel */}

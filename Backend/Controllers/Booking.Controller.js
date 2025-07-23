@@ -158,7 +158,7 @@ export const getBookingStats = async (req, res) => {
       unreadRoomsCount: 0,
     };
 
-    // Calculate unreadRoomsCount (excluding rejected)
+    // --- Calculate unreadRoomsCount, excluding rejected ones ---
     const unreadMessages = await Message.find({
       receiverId: userId,
       isRead: false,
@@ -167,12 +167,13 @@ export const getBookingStats = async (req, res) => {
     const roomSet = new Set();
 
     for (let msg of unreadMessages) {
+      // Find if booking between current user and sender is not rejected
       const booking = await Booking.findOne({
         $or: [
           { customerId: userId, providerId: msg.senderId },
           { providerId: userId, customerId: msg.senderId },
         ],
-        status: { $ne: "rejected" },
+        status: { $ne: "rejected" }, // NOT rejected
       });
 
       if (booking) {
@@ -182,46 +183,7 @@ export const getBookingStats = async (req, res) => {
 
     stats.unreadRoomsCount = roomSet.size;
 
-    // 👉 Add weekly bookings chart data
-    const today = new Date();
-    const sevenDaysAgo = new Date();
-    sevenDaysAgo.setDate(today.getDate() - 6);
-
-    const weeklyBookings = await Booking.aggregate([
-      {
-        $match: {
-          ...filter,
-          createdAt: { $gte: sevenDaysAgo },
-        },
-      },
-      {
-        $group: {
-          _id: {
-            $dateToString: { format: "%Y-%m-%d", date: "$createdAt" },
-          },
-          bookings: { $sum: 1 },
-        },
-      },
-    ]);
-
-    const bookingMap = {};
-    weeklyBookings.forEach((item) => {
-      bookingMap[item._id] = item.bookings;
-    });
-
-    const weeklyData = [];
-    for (let i = 0; i < 7; i++) {
-      const date = new Date();
-      date.setDate(date.getDate() - (6 - i));
-      const key = date.toISOString().split("T")[0];
-
-      weeklyData.push({
-        date: key,
-        bookings: bookingMap[key] || 0,
-      });
-    }
-
-    res.status(200).json({ stats, weeklyData });
+    res.status(200).json(stats);
   } catch (err) {
     console.error(err);
     res.status(500).json({ message: "Something went wrong" });
@@ -233,7 +195,7 @@ export const updateStatus = async (req, res) => {
     const { status, timeSlot } = req.body;
 
     const user = await User.findById(req.user?.id);
-    user.availability = ["pending", "completed", "rejected"].includes(status);
+    user.availability = ['pending', 'completed', 'rejected'].includes(status);
     await user.save({ validateBeforeSave: false });
 
     const updated = await Booking.findByIdAndUpdate(
