@@ -1,6 +1,7 @@
 import { User } from "../Models/User.Model.js";
 import { Message } from "../Models/Message.Model.js";
 import { uploadOnCloudinary } from "../utilities/Cloudinary.utilities.js";
+import nodemailer from "nodemailer";
 
 export const registerUser = async (req, res) => {
   try {
@@ -209,5 +210,40 @@ export const markMessagesAsRead = async (req, res) => {
   } catch (err) {
     console.error("Error updating isRead:", err);
     res.status(500).json({ success: false, message: "Server error" });
+  }
+};
+
+export const sendContactMail = async (req, res) => {
+  try {
+    const { name, email, message } = req.body;
+
+    if (!name || !email || !message)
+      return res.status(400).json({ message: "All fields are required" });
+
+    const transporter = nodemailer.createTransport({
+      service: "gmail", // or use host, port, etc. for other services
+      auth: {
+        user: process.env.MAIL_USER, // e.g. your-email@gmail.com
+        pass: process.env.MAIL_PASS, // app password (not your Gmail password!)
+      },
+    });
+
+    const mailOptions = {
+      from: `"${name}" <${email}>`,
+      to: "youremail@example.com", // replace with your email
+      subject: "New Message from Service Finder Contact Form",
+      html: `
+        <h3>Contact Details</h3>
+        <p><strong>Name:</strong> ${name}</p>
+        <p><strong>Email:</strong> ${email}</p>
+        <p><strong>Message:</strong> ${message}</p>
+      `,
+    };
+
+    await transporter.sendMail(mailOptions);
+    return res.status(200).json({ message: "Message sent successfully!" });
+  } catch (err) {
+    console.error("Nodemailer Error:", err);
+    return res.status(500).json({ message: "Failed to send message" });
   }
 };

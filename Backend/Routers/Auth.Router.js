@@ -7,6 +7,7 @@ import {
   Login,
   markMessagesAsRead,
   registerUser,
+  sendContactMail,
 } from "../Controllers/Auth.Controller.js";
 import { authMiddleware } from "../Middlewares/Auth.Middleware.js";
 import { upload } from "../Middlewares/Multer.Middleware.js";
@@ -20,5 +21,6 @@ router.route("/getUserDetails/:userId").get(getUserDetails);
 router.route("/getChatHistory/:roomId").get(getChatHistory);
 router.route("/getCurrentUser").get(authMiddleware, getCurrentUser);
 router.route("/markAsRead").post(markMessagesAsRead);
+router.route("/sendEmail").post(sendContactMail);
 
 export default router;
