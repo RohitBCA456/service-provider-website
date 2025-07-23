@@ -265,3 +265,59 @@ export const submitRating = async (req, res) => {
     res.status(500).json({ message: "Internal Server Error" });
   }
 };
+
+
+import { Booking } from "../Models/Booking.Model.js";
+import moment from "moment";
+
+export const getBookingChartData = async (req, res) => {
+  try {
+    const userId = req.user?.id;
+    const role = req.user?.role;
+
+    if (!userId || !role) {
+      return res.status(401).json({ message: "Unauthorized" });
+    }
+
+    const filter = {};
+    if (role === "provider") {
+      filter.providerId = userId;
+    } else if (role === "customer") {
+      filter.customerId = userId;
+    } else {
+      return res.status(400).json({ message: "Invalid user role" });
+    }
+
+    // Prepare last 7 days dates
+    const dates = [];
+    for (let i = 6; i >= 0; i--) {
+      dates.push(moment().subtract(i, "days").startOf("day"));
+    }
+
+    // Initialize dailyCounts with 0
+    const dailyCounts = dates.map((date) => ({
+      date: date.format("YYYY-MM-DD"),
+      bookings: 0,
+    }));
+
+    const startDate = moment().subtract(6, "days").startOf("day").toDate();
+    const endDate = moment().endOf("day").toDate();
+
+    const bookings = await Booking.find({
+      ...filter,
+      createdAt: { $gte: startDate, $lte: endDate },
+    }).lean();
+
+    // Count bookings per day
+    for (const booking of bookings) {
+      const day = moment(booking.createdAt).format("YYYY-MM-DD");
+      const found = dailyCounts.find((d) => d.date === day);
+      if (found) found.bookings++;
+    }
+
+    return res.status(200).json({ weeklyData: dailyCounts });
+  } catch (err) {
+    console.error("Chart Data Error:", err);
+    return res.status(500).json({ message: "Internal Server Error" });
+  }
+};

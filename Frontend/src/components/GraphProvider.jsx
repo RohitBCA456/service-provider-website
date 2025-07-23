@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import {
   BarChart,
   Bar,
@@ -12,21 +12,7 @@ import {
   ResponsiveContainer,
 } from "recharts";
 import { motion } from "framer-motion";
-
-// Sample data
-const weeklyData = [
-  { date: "2024-07-08", bookings: 3 },
-  { date: "2024-07-09", bookings: 5 },
-  { date: "2024-07-10", bookings: 2 },
-  { date: "2024-07-11", bookings: 6 },
-  { date: "2024-07-12", bookings: 4 },
-  { date: "2024-07-13", bookings: 7 },
-  { date: "2024-07-14", bookings: 5 },
-];
-
-const totalBookings = weeklyData.reduce((sum, item) => sum + item.bookings, 0);
-const avgBookings = Math.round(totalBookings / weeklyData.length);
-const bookingGoal = 40;
+import axios from "axios";
 
 function Step({ step, currentStep }) {
   const status =
@@ -40,20 +26,10 @@ function Step({ step, currentStep }) {
     <motion.div animate={status} className="relative">
       <motion.div
         variants={{
-          active: {
-            scale: 1,
-            transition: { delay: 0, duration: 0.2 },
-          },
-          complete: {
-            scale: 1.25,
-          },
+          active: { scale: 1 },
+          complete: { scale: 1.25 },
         }}
-        transition={{
-          duration: 0.6,
-          delay: 0.2,
-          type: "tween",
-          ease: "circOut",
-        }}
+        transition={{ duration: 0.6, delay: 0.2, type: "tween", ease: "circOut" }}
         className="absolute inset-0 rounded-full bg-blue-200"
       />
       <motion.div
@@ -100,12 +76,7 @@ function CheckIcon(props) {
       <motion.path
         initial={{ pathLength: 0 }}
         animate={{ pathLength: 1 }}
-        transition={{
-          delay: 0.2,
-          type: "tween",
-          ease: "easeOut",
-          duration: 0.3,
-        }}
+        transition={{ delay: 0.2, type: "tween", ease: "easeOut", duration: 0.3 }}
         strokeLinecap="round"
         strokeLinejoin="round"
         d="M5 13l4 4L19 7"
@@ -116,6 +87,38 @@ function CheckIcon(props) {
 
 export default function ProviderHome() {
   const [step, setStep] = useState(1);
+  const [weeklyData, setWeeklyData] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
+
+  const bookingGoal = 40;
+
+  useEffect(() => {
+    const fetchChartData = async () => {
+      try {
+        const res = await axios.get("https://service-provider-website.onrender.com/api/v1/booking/getBookingChartData", {
+          withCredentials: true,
+        });
+        setWeeklyData(res.data.weeklyData || []);
+      } catch (err) {
+        console.error("Chart Fetch Error:", err);
+        setError("Failed to load chart data.");
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchChartData();
+  }, []);
+
+  const totalBookings = weeklyData.reduce(
+    (sum, item) => sum + item.bookings,
+    0
+  );
+  const avgBookings =
+    weeklyData.length > 0
+      ? Math.round(totalBookings / weeklyData.length)
+      : 0;
 
   return (
     <div className="min-h-screen p-4 sm:p-6 lg:p-10 mt-5">
@@ -128,67 +131,82 @@ export default function ProviderHome() {
         <div className="w-full lg:w-1/2 bg-white p-5 sm:p-6 rounded-lg shadow">
           <div className="text-sm text-gray-500">This Week</div>
           <div className="text-3xl sm:text-4xl font-bold text-gray-900">
-            {totalBookings}{" "}
+            {loading ? "Loading..." : totalBookings}{" "}
             <span className="text-sm font-normal text-gray-400">bookings</span>
           </div>
 
           <div className="mt-6 w-full h-64">
-            <ResponsiveContainer width="100%" height="100%">
-              <BarChart data={weeklyData} margin={{ left: -10, right: -10 }}>
-                <XAxis
-                  dataKey="date"
-                  tickFormatter={(value) =>
-                    new Date(value).toLocaleDateString("en-US", {
-                      weekday: "short",
-                    })
-                  }
-                  tickLine={false}
-                  axisLine={false}
-                  tickMargin={6}
-                />
-                <Tooltip
-                  cursor={{ fill: "transparent" }}
-                  labelFormatter={(value) =>
-                    new Date(value).toLocaleDateString("en-US", {
-                      day: "numeric",
-                      month: "long",
-                    })
-                  }
-                />
-                <Bar
-                  dataKey="bookings"
-                  fill="#3B82F6"
-                  radius={[5, 5, 0, 0]}
-                  activeBar={<Rectangle fill="#2563EB" />}
-                />
-                <ReferenceLine
-                  y={avgBookings}
-                  stroke="#999"
-                  strokeDasharray="3 3"
+            {loading || error ? (
+              <div className="flex items-center justify-center h-full text-gray-400">
+                {error ? error : "Loading chart..."}
+              </div>
+            ) : (
+              <ResponsiveContainer width="100%" height="100%">
+                <BarChart
+                  data={weeklyData}
+                  margin={{ left: -10, right: -10 }}
                 >
-                  <Label
-                    value={`Avg: ${avgBookings}`}
-                    position="insideTopLeft"
-                    offset={10}
-                    fill="#333"
+                  <XAxis
+                    dataKey="date"
+                    tickFormatter={(value) =>
+                      new Date(value).toLocaleDateString("en-US", {
+                        weekday: "short",
+                      })
+                    }
+                    tickLine={false}
+                    axisLine={false}
+                    tickMargin={6}
                   />
-                </ReferenceLine>
-              </BarChart>
-            </ResponsiveContainer>
+                  <Tooltip
+                    cursor={{ fill: "transparent" }}
+                    labelFormatter={(value) =>
+                      new Date(value).toLocaleDateString("en-US", {
+                        day: "numeric",
+                        month: "long",
+                      })
+                    }
+                  />
+                  <Bar
+                    dataKey="bookings"
+                    fill="#3B82F6"
+                    radius={[5, 5, 0, 0]}
+                    activeBar={<Rectangle fill="#2563EB" />}
+                  />
+                  <ReferenceLine
+                    y={avgBookings}
+                    stroke="#999"
+                    strokeDasharray="3 3"
+                  >
+                    <Label
+                      value={`Avg: ${avgBookings}`}
+                      position="insideTopLeft"
+                      offset={10}
+                      fill="#333"
+                    />
+                  </ReferenceLine>
+                </BarChart>
+              </ResponsiveContainer>
+            )}
           </div>
 
-          <div className="mt-4 text-sm text-gray-600">
-            Over the past 7 days, you received{" "}
-            <span className="font-semibold text-black">{totalBookings}</span>{" "}
-            bookings.
-          </div>
-          <div className="text-sm text-gray-600">
-            You need{" "}
-            <span className="font-semibold text-black">
-              {Math.max(0, bookingGoal - totalBookings)}
-            </span>{" "}
-            more bookings to hit your goal of {bookingGoal}.
-          </div>
+          {!loading && !error && (
+            <>
+              <div className="mt-4 text-sm text-gray-600">
+                Over the past 7 days, you received{" "}
+                <span className="font-semibold text-black">
+                  {totalBookings}
+                </span>{" "}
+                bookings.
+              </div>
+              <div className="text-sm text-gray-600">
+                You need{" "}
+                <span className="font-semibold text-black">
+                  {Math.max(0, bookingGoal - totalBookings)}
+                </span>{" "}
+                more bookings to hit your goal of {bookingGoal}.
+              </div>
+            </>
+          )}
         </div>
 
         {/* Right Wizard Panel */}
@@ -213,7 +231,6 @@ export default function ProviderHome() {
                   </p>
                 </div>
               )}
-
               {step === 2 && (
                 <div>
                   <h2 className="text-lg sm:text-xl font-semibold text-gray-800">
@@ -225,7 +242,6 @@ export default function ProviderHome() {
                   </p>
                 </div>
               )}
-
               {step === 3 && (
                 <div>
                   <h2 className="text-lg sm:text-xl font-semibold text-gray-800">
@@ -237,7 +253,6 @@ export default function ProviderHome() {
                   </p>
                 </div>
               )}
-
               {step === 4 && (
                 <div>
                   <h2 className="text-lg sm:text-xl font-semibold text-gray-800">
