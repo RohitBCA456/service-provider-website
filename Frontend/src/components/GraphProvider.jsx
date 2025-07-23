@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import {
   BarChart,
   Bar,
@@ -12,22 +12,36 @@ import {
   ResponsiveContainer,
 } from "recharts";
 import { motion } from "framer-motion";
+import axios from "axios";
 
-// Sample data
-const weeklyData = [
-  { date: "2024-07-08", bookings: 3 },
-  { date: "2024-07-09", bookings: 5 },
-  { date: "2024-07-10", bookings: 2 },
-  { date: "2024-07-11", bookings: 6 },
-  { date: "2024-07-12", bookings: 4 },
-  { date: "2024-07-13", bookings: 7 },
-  { date: "2024-07-14", bookings: 5 },
-];
+// CheckIcon Component
+function CheckIcon(props) {
+  return (
+    <svg
+      {...props}
+      fill="none"
+      viewBox="0 0 24 24"
+      stroke="currentColor"
+      strokeWidth={3}
+    >
+      <motion.path
+        initial={{ pathLength: 0 }}
+        animate={{ pathLength: 1 }}
+        transition={{
+          delay: 0.2,
+          type: "tween",
+          ease: "easeOut",
+          duration: 0.3,
+        }}
+        strokeLinecap="round"
+        strokeLinejoin="round"
+        d="M5 13l4 4L19 7"
+      />
+    </svg>
+  );
+}
 
-const totalBookings = weeklyData.reduce((sum, item) => sum + item.bookings, 0);
-const avgBookings = Math.round(totalBookings / weeklyData.length);
-const bookingGoal = 40;
-
+// Step Component
 function Step({ step, currentStep }) {
   const status =
     currentStep === step
@@ -40,13 +54,8 @@ function Step({ step, currentStep }) {
     <motion.div animate={status} className="relative">
       <motion.div
         variants={{
-          active: {
-            scale: 1,
-            transition: { delay: 0, duration: 0.2 },
-          },
-          complete: {
-            scale: 1.25,
-          },
+          active: { scale: 1, transition: { delay: 0, duration: 0.2 } },
+          complete: { scale: 1.25 },
         }}
         transition={{
           duration: 0.6,
@@ -88,34 +97,34 @@ function Step({ step, currentStep }) {
   );
 }
 
-function CheckIcon(props) {
-  return (
-    <svg
-      {...props}
-      fill="none"
-      viewBox="0 0 24 24"
-      stroke="currentColor"
-      strokeWidth={3}
-    >
-      <motion.path
-        initial={{ pathLength: 0 }}
-        animate={{ pathLength: 1 }}
-        transition={{
-          delay: 0.2,
-          type: "tween",
-          ease: "easeOut",
-          duration: 0.3,
-        }}
-        strokeLinecap="round"
-        strokeLinejoin="round"
-        d="M5 13l4 4L19 7"
-      />
-    </svg>
-  );
-}
-
+// Main Component
 export default function ProviderHome() {
   const [step, setStep] = useState(1);
+  const [weeklyData, setWeeklyData] = useState([]);
+
+  useEffect(() => {
+    const fetchStats = async () => {
+      try {
+        const res = await axios.get("/api/bookings/stats", {
+          withCredentials: true, // important if using cookies
+        });
+        setWeeklyData(res.data.weeklyData);
+      } catch (err) {
+        console.error("Failed to fetch booking stats", err);
+      }
+    };
+
+    fetchStats();
+  }, []);
+
+  const totalBookings = weeklyData.reduce(
+    (sum, item) => sum + item.bookings,
+    0
+  );
+  const avgBookings = weeklyData.length
+    ? Math.round(totalBookings / weeklyData.length)
+    : 0;
+  const bookingGoal = 40;
 
   return (
     <div className="min-h-screen p-4 sm:p-6 lg:p-10 mt-5">
@@ -220,8 +229,8 @@ export default function ProviderHome() {
                     Accepted Bookings
                   </h2>
                   <p className="text-gray-600">
-                    See the list of <strong>accepted bookings</strong> and
-                    their upcoming dates.
+                    See the list of <strong>accepted bookings</strong> and their
+                    upcoming dates.
                   </p>
                 </div>
               )}
