@@ -57,12 +57,7 @@ function Step({ step, currentStep }) {
           active: { scale: 1, transition: { delay: 0, duration: 0.2 } },
           complete: { scale: 1.25 },
         }}
-        transition={{
-          duration: 0.6,
-          delay: 0.2,
-          type: "tween",
-          ease: "circOut",
-        }}
+        transition={{ duration: 0.6, delay: 0.2, type: "tween", ease: "circOut" }}
         className="absolute inset-0 rounded-full bg-blue-200"
       />
       <motion.div
@@ -100,37 +95,43 @@ function Step({ step, currentStep }) {
 // Main Component
 export default function ProviderHome() {
   const [step, setStep] = useState(1);
-  const [weeklyData, setWeeklyData] = useState([]);
+  const [weeklyData, setWeeklyData] = useState(null);
 
   useEffect(() => {
     const fetchStats = async () => {
       try {
         const res = await axios.get("/api/bookings/stats", {
-          withCredentials: true, // important if using cookies
+          withCredentials: true, // use if cookies carry auth token
         });
-        setWeeklyData(res.data.weeklyData);
+        setWeeklyData(res.data.weeklyData || []);
       } catch (err) {
         console.error("Failed to fetch booking stats", err);
+        setWeeklyData([]); // fallback to empty
       }
     };
 
     fetchStats();
   }, []);
 
-  const totalBookings = weeklyData.reduce(
-    (sum, item) => sum + item.bookings,
-    0
-  );
-  const avgBookings = weeklyData.length
-    ? Math.round(totalBookings / weeklyData.length)
-    : 0;
+  // Show loading until data is ready
+  if (!Array.isArray(weeklyData)) {
+    return (
+      <div className="p-10 text-center text-gray-600 text-lg">
+        Loading provider dashboard...
+      </div>
+    );
+  }
+
+  const totalBookings = weeklyData.reduce((sum, item) => sum + item.bookings, 0);
+  const avgBookings =
+    weeklyData.length > 0
+      ? Math.round(totalBookings / weeklyData.length)
+      : 0;
   const bookingGoal = 40;
 
   return (
     <div className="min-h-screen p-4 sm:p-6 lg:p-10 mt-5">
-      <h1 className="text-2xl sm:text-3xl font-bold mb-6">
-        Provider Dashboard
-      </h1>
+      <h1 className="text-2xl sm:text-3xl font-bold mb-6">Provider Dashboard</h1>
 
       <div className="flex flex-col lg:flex-row flex-wrap gap-6">
         {/* Left Chart Panel */}
@@ -229,8 +230,8 @@ export default function ProviderHome() {
                     Accepted Bookings
                   </h2>
                   <p className="text-gray-600">
-                    See the list of <strong>accepted bookings</strong> and their
-                    upcoming dates.
+                    See the list of <strong>accepted bookings</strong> and
+                    their upcoming dates.
                   </p>
                 </div>
               )}
