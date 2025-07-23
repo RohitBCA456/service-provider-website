@@ -1,6 +1,7 @@
 import { Booking } from "../Models/Booking.Model.js";
 import { User } from "../Models/User.Model.js";
 import { Message } from "../Models/Message.Model.js";
+import moment from "moment";
 
 export const bookProvider = async (req, res) => {
   const providerId = req.body.providerId;
@@ -265,10 +266,6 @@ export const submitRating = async (req, res) => {
     res.status(500).json({ message: "Internal Server Error" });
   }
 };
-
-
-import { Booking } from "../Models/Booking.Model.js";
-import moment from "moment";
 
 export const getBookingChartData = async (req, res) => {
   try {

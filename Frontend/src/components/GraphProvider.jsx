@@ -90,15 +90,15 @@ export default function ProviderHome() {
   const [weeklyData, setWeeklyData] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
-
   const bookingGoal = 40;
 
   useEffect(() => {
     const fetchChartData = async () => {
       try {
-        const res = await axios.get("https://service-provider-website.onrender.com/api/v1/booking/getBookingChartData", {
-          withCredentials: true,
-        });
+        const res = await axios.get(
+          "https://service-provider-website.onrender.com/api/v1/booking/getBookingChartData",
+          { withCredentials: true }
+        );
         setWeeklyData(res.data.weeklyData || []);
       } catch (err) {
         console.error("Chart Fetch Error:", err);
@@ -111,10 +111,7 @@ export default function ProviderHome() {
     fetchChartData();
   }, []);
 
-  const totalBookings = weeklyData.reduce(
-    (sum, item) => sum + item.bookings,
-    0
-  );
+  const totalBookings = weeklyData.reduce((sum, item) => sum + item.bookings, 0);
   const avgBookings =
     weeklyData.length > 0
       ? Math.round(totalBookings / weeklyData.length)
@@ -126,9 +123,9 @@ export default function ProviderHome() {
         Provider Dashboard
       </h1>
 
-      <div className="flex flex-col lg:flex-row flex-wrap gap-6">
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 items-start">
         {/* Left Chart Panel */}
-        <div className="w-full lg:w-1/2 bg-white p-5 sm:p-6 rounded-lg shadow">
+        <div className="bg-white p-5 sm:p-6 rounded-lg shadow">
           <div className="text-sm text-gray-500">This Week</div>
           <div className="text-3xl sm:text-4xl font-bold text-gray-900">
             {loading ? "Loading..." : totalBookings}{" "}
@@ -142,10 +139,7 @@ export default function ProviderHome() {
               </div>
             ) : (
               <ResponsiveContainer width="100%" height="100%">
-                <BarChart
-                  data={weeklyData}
-                  margin={{ left: -10, right: -10 }}
-                >
+                <BarChart data={weeklyData} margin={{ left: -10, right: -10 }}>
                   <XAxis
                     dataKey="date"
                     tickFormatter={(value) =>
@@ -193,9 +187,7 @@ export default function ProviderHome() {
             <>
               <div className="mt-4 text-sm text-gray-600">
                 Over the past 7 days, you received{" "}
-                <span className="font-semibold text-black">
-                  {totalBookings}
-                </span>{" "}
+                <span className="font-semibold text-black">{totalBookings}</span>{" "}
                 bookings.
               </div>
               <div className="text-sm text-gray-600">
@@ -210,7 +202,7 @@ export default function ProviderHome() {
         </div>
 
         {/* Right Wizard Panel */}
-        <div className="w-full lg:w-1/2 flex flex-col justify-center items-center">
+        <div className="w-full flex flex-col items-center">
           <div className="w-full max-w-md rounded-lg bg-white shadow-xl">
             <div className="flex justify-between rounded p-6 sm:p-8">
               <Step step={1} currentStep={step} />
@@ -269,7 +261,7 @@ export default function ProviderHome() {
             <div className="px-6 sm:px-8 pb-8">
               <div className="mt-6 flex justify-between">
                 <button
-                  onClick={() => setStep(step < 2 ? step : step - 1)}
+                  onClick={() => setStep(step > 1 ? step - 1 : 1)}
                   className={`${
                     step === 1 ? "pointer-events-none opacity-50" : ""
                   } duration-300 rounded px-2 py-1 text-neutral-400 transition hover:text-neutral-700`}
@@ -277,9 +269,9 @@ export default function ProviderHome() {
                   Back
                 </button>
                 <button
-                  onClick={() => setStep(step >= 4 ? step : step + 1)}
+                  onClick={() => setStep(step < 4 ? step + 1 : 4)}
                   className={`${
-                    step >= 4 ? "pointer-events-none opacity-50" : ""
+                    step === 4 ? "pointer-events-none opacity-50" : ""
                   } duration-300 flex items-center justify-center rounded-full bg-blue-500 py-1.5 px-4 font-medium text-white transition hover:bg-blue-600 active:bg-blue-700`}
                 >
                   Continue
