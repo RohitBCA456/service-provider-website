@@ -29,7 +29,12 @@ function Step({ step, currentStep }) {
           active: { scale: 1 },
           complete: { scale: 1.25 },
         }}
-        transition={{ duration: 0.6, delay: 0.2, type: "tween", ease: "circOut" }}
+        transition={{
+          duration: 0.6,
+          delay: 0.2,
+          type: "tween",
+          ease: "circOut",
+        }}
         className="absolute inset-0 rounded-full bg-blue-200"
       />
       <motion.div
@@ -76,7 +81,12 @@ function CheckIcon(props) {
       <motion.path
         initial={{ pathLength: 0 }}
         animate={{ pathLength: 1 }}
-        transition={{ delay: 0.2, type: "tween", ease: "easeOut", duration: 0.3 }}
+        transition={{
+          delay: 0.2,
+          type: "tween",
+          ease: "easeOut",
+          duration: 0.3,
+        }}
         strokeLinecap="round"
         strokeLinejoin="round"
         d="M5 13l4 4L19 7"
@@ -111,11 +121,12 @@ export default function ProviderHome() {
     fetchChartData();
   }, []);
 
-  const totalBookings = weeklyData.reduce((sum, item) => sum + item.bookings, 0);
+  const totalBookings = weeklyData.reduce(
+    (sum, item) => sum + item.bookings,
+    0
+  );
   const avgBookings =
-    weeklyData.length > 0
-      ? Math.round(totalBookings / weeklyData.length)
-      : 0;
+    weeklyData.length > 0 ? Math.round(totalBookings / weeklyData.length) : 0;
 
   return (
     <div className="min-h-screen p-4 sm:p-6 lg:p-10 mt-5">
@@ -173,9 +184,10 @@ export default function ProviderHome() {
                   >
                     <Label
                       value={`Avg: ${avgBookings}`}
-                      position="insideTopLeft"
+                      position="top"
                       offset={10}
                       fill="#333"
+                      fontSize={12}
                     />
                   </ReferenceLine>
                 </BarChart>
@@ -187,7 +199,9 @@ export default function ProviderHome() {
             <>
               <div className="mt-4 text-sm text-gray-600">
                 Over the past 7 days, you received{" "}
-                <span className="font-semibold text-black">{totalBookings}</span>{" "}
+                <span className="font-semibold text-black">
+                  {totalBookings}
+                </span>{" "}
                 bookings.
               </div>
               <div className="text-sm text-gray-600">
@@ -229,8 +243,8 @@ export default function ProviderHome() {
                     Accepted Bookings
                   </h2>
                   <p className="text-gray-600">
-                    See the list of <strong>accepted bookings</strong> and
-                    their upcoming dates.
+                    See the list of <strong>accepted bookings</strong> and their
+                    upcoming dates.
                   </p>
                 </div>
               )}
