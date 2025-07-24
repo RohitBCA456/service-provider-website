@@ -56,6 +56,7 @@ const ChatPage = () => {
         );
         const data = await res.json();
         if (data.success) {
+          console.log(data)
           setCurrentUserId(data.user.id);
           console.log(data.user.id)
         } else {
