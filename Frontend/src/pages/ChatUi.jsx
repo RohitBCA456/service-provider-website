@@ -149,6 +149,7 @@ const ChatPage = () => {
   const handleSendMessage = () => {
     if (!inputValue.trim()) return;
     if (!currentUserId || !targetUserId) {
+      console.log(currentUserId, targetUserId)
       console.warn("Missing sender or receiver ID");
       return;
     }

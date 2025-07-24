@@ -29,17 +29,4 @@ router.put("/updateServicePairs", authMiddleware, updateServicePair);
 
 router.delete("/deleteServicePairs", authMiddleware, deleteServicePair);
 
-let providerSubscriptions = {};
-
-router.post("/subscribe", (req, res) => {
-  const { providerId, subscription } = req.body;
-  providerSubscriptions[providerId] = subscription; 
-  res.status(201).json({ success: true });
-});
-
-export const getProviderSubscription = (providerId) => {
-  return providerSubscriptions[providerId];
-};
-
-
 export default router;
