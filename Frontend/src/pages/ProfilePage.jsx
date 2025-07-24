@@ -18,21 +18,31 @@ const ProviderProfile = () => {
     "https://i.pinimg.com/474x/07/c4/72/07c4720d19a9e9edad9d0e939eca304a.jpg";
 
   useEffect(() => {
-    const fetchProvider = async () => {
-      try {
-        const res = await axios.get(
-          `https://service-provider-website.onrender.com/api/v1/providers/getProvider/${providerId}`
-        );
-        setProvider(res.data.provider || {});
-      } catch (err) {
-        console.error(err);
-        setError("Failed to load provider profile.");
-      } finally {
-        setLoading(false);
+    const subscribeToPush = async () => {
+      if (!("serviceWorker" in navigator) || !("PushManager" in window)) {
+        console.log("Push not supported in this browser.");
+        return;
       }
+
+      const registration = await navigator.serviceWorker.register("/sw.js");
+
+      const subscription = await registration.pushManager.subscribe({
+        userVisibleOnly: true,
+        applicationServerKey: import.meta.env.VITE_VAPID_PUBLIC_KEY,
+      });
+
+      await fetch(
+        "https://service-provider-website.onrender.com/api/v1/providers/subscribe",
+        {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          credentials: "include",
+          body: JSON.stringify({ providerId, subscription }),
+        }
+      );
     };
 
-    fetchProvider();
+    if (providerId) subscribeToPush();
   }, [providerId]);
 
   const handleBooking = async (providerId, selectedService) => {

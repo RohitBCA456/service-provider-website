@@ -2,6 +2,8 @@ import { Booking } from "../Models/Booking.Model.js";
 import { User } from "../Models/User.Model.js";
 import { Message } from "../Models/Message.Model.js";
 import moment from "moment";
+import { getProviderSubscription } from "../Routers/Provider.Router.js";
+import { sendPushNotification } from "../utilities/webPush.js";
 
 export const bookProvider = async (req, res) => {
   const providerId = req.body.providerId;
@@ -31,9 +33,23 @@ export const bookProvider = async (req, res) => {
   });
 
   if (newBooking) {
+    // ✅ Get customer name
+    const customer = await User.findById(customerId);
+    const customerName = customer?.name || "a customer";
+
+    // ✅ Get provider's push subscription
+    const subscription = getProviderSubscription(providerId);
+
+    if (subscription) {
+      await sendPushNotification(subscription, {
+        title: "New Booking Received",
+        message: `You have a new booking from ${customerName}`,
+      });
+    }
+
     return res.status(200).json({
       success: true,
-      message: "Booking successfull",
+      message: "Booking successful",
       newBooking,
     });
   }
