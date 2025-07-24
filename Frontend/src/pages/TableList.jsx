@@ -339,12 +339,19 @@ const TableList = () => {
 
                 {status === "accepted" && role === "provider" && (
                   <td className="p-3 text-center">
-                    <input
-                      type="checkbox"
-                      checked={!!completedChecks[booking.bookingId]}
-                      onChange={(e) => handleComplete(e, booking.bookingId)}
-                      className="w-4 h-4 mr-10 accent-green-500 cursor-pointer"
-                    />
+                    <button
+                      onClick={(e) => handleComplete(e, booking.bookingId)}
+                      disabled={!!completedChecks[booking.bookingId]}
+                      className={`px-3 py-1 rounded font-medium text-white transition-colors ${
+                        completedChecks[booking.bookingId]
+                          ? "bg-gray-400 cursor-not-allowed"
+                          : "bg-green-500 hover:bg-green-600"
+                      }`}
+                    >
+                      {completedChecks[booking.bookingId]
+                        ? "Completed"
+                        : "Mark Complete"}
+                    </button>
                   </td>
                 )}
 
