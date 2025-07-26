@@ -108,7 +108,7 @@ export const ContactUsMapForm = () => {
                     id="message"
                     value={formData.message}
                     onChange={handleChange}
-                    className="peer block w-full text-gray-500 rounded border-2 bg-transparent py-2 px-3 outline-none transition-all"
+                    className="peer block w-full rounded border-2 bg-transparent py-2 px-3 outline-none transition-all"
                     rows="3"
                     placeholder=" "
                     required
