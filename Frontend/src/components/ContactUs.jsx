@@ -73,7 +73,7 @@ export const ContactUsMapForm = () => {
                     id="name"
                     value={formData.name}
                     onChange={handleChange}
-                    className="peer block w-full rounded border-2 bg-transparent py-2 px-3 outline-none transition-all"
+                    className="peer block w-full text-gray-300 rounded border-2 bg-transparent py-2 px-3 outline-none transition-all"
                     placeholder=" "
                     required
                   />
@@ -91,7 +91,7 @@ export const ContactUsMapForm = () => {
                     id="email"
                     value={formData.email}
                     onChange={handleChange}
-                    className="peer block w-full rounded border-2 bg-transparent py-2 px-3 outline-none transition-all"
+                    className="peer block w-full text-gray-300 rounded border-2 bg-transparent py-2 px-3 outline-none transition-all"
                     placeholder=" "
                     required
                   />
@@ -108,7 +108,7 @@ export const ContactUsMapForm = () => {
                     id="message"
                     value={formData.message}
                     onChange={handleChange}
-                    className="peer block w-full rounded border-2 bg-transparent py-2 px-3 outline-none transition-all"
+                    className="peer block w-full rounded text-gray-300 border-2 bg-transparent py-2 px-3 outline-none transition-all"
                     rows="3"
                     placeholder=" "
                     required
