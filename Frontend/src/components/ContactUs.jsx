@@ -67,13 +67,13 @@ export const ContactUsMapForm = () => {
             {/* Contact Form */}
             <div className="mb-12 w-full md:px-3 lg:mb-0 lg:w-5/12 lg:px-6">
               <form onSubmit={handleSubmit}>
-                <div className="relative mb-6">
+                <div className="relative mb-6 text-gray-500">
                   <input
                     type="text"
                     id="name"
                     value={formData.name}
                     onChange={handleChange}
-                    className="peer block w-full text-gray-300 rounded border-2 bg-transparent py-2 px-3 outline-none transition-all"
+                    className="peer block w-full rounded border-2 bg-transparent py-2 px-3 outline-none transition-all"
                     placeholder=" "
                     required
                   />
@@ -91,7 +91,7 @@ export const ContactUsMapForm = () => {
                     id="email"
                     value={formData.email}
                     onChange={handleChange}
-                    className="peer block w-full text-gray-300 rounded border-2 bg-transparent py-2 px-3 outline-none transition-all"
+                    className="peer block w-full rounded border-2 bg-transparent py-2 px-3 outline-none transition-all"
                     placeholder=" "
                     required
                   />
@@ -108,7 +108,7 @@ export const ContactUsMapForm = () => {
                     id="message"
                     value={formData.message}
                     onChange={handleChange}
-                    className="peer block w-full rounded text-gray-300 border-2 bg-transparent py-2 px-3 outline-none transition-all"
+                    className="peer block w-full rounded border-2 bg-transparent py-2 px-3 outline-none transition-all"
                     rows="3"
                     placeholder=" "
                     required
