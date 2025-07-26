@@ -85,7 +85,7 @@ export const ContactUsMapForm = () => {
                   </label>
                 </div>
 
-                <div className="relative mb-6">
+                <div className="relative mb-6 text-gray-500">
                   <input
                     type="email"
                     id="email"
@@ -103,7 +103,7 @@ export const ContactUsMapForm = () => {
                   </label>
                 </div>
 
-                <div className="relative mb-6">
+                <div className="relative mb-6 text-gray-500">
                   <textarea
                     id="message"
                     value={formData.message}
