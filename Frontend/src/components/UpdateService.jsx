@@ -141,7 +141,6 @@ const UserServices = () => {
             services.map((service, index) => (
               <div
                 key={index}
-                // Using Grid for robust column layout
                 className={`grid grid-cols-1 md:grid-cols-6 gap-4 items-center p-4 rounded-lg border border-gray-200 transition-all duration-300 ${
                   editIndex === index ? "bg-indigo-50" : "bg-gray-50 hover:shadow-md"
                 }`}
@@ -180,8 +179,8 @@ const UserServices = () => {
                   </div>
                 </div>
 
-                {/* Buttons Column */}
-                <div className="md:col-span-2 flex items-center justify-start md:justify-end gap-2">
+                {/* Buttons Column -- ✨ FIX APPLIED HERE ✨ */}
+                <div className="md:col-span-2 flex items-center justify-start md:justify-end gap-2 mt-4 md:mt-0">
                   {editIndex === index ? (
                     <button
                       onClick={handleSaveEdit}
