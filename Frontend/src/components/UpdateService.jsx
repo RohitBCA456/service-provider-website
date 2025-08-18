@@ -2,7 +2,7 @@ import React, { useEffect, useState } from "react";
 import axios from "axios";
 import { FaEdit, FaTrash, FaSave, FaPlus } from "react-icons/fa";
 import toast from "react-hot-toast";
-import Loader from "./Loader"; // Assuming Loader component exists
+import Loader from "./Loader";
 
 const UserServices = () => {
   const [user, setUser] = useState(null);
@@ -15,7 +15,6 @@ const UserServices = () => {
   const [newPrice, setNewPrice] = useState("");
 
   // Loading states
-  const [isLoading, setIsLoading] = useState(true);
   const [isAdding, setIsAdding] = useState(false);
   const [isDeletingIndex, setIsDeletingIndex] = useState(null);
   const [isEditingIndex, setIsEditingIndex] = useState(null);
@@ -33,9 +32,6 @@ const UserServices = () => {
         setPricing(fetchedUser.Pricing || []);
       } catch (err) {
         console.error("Error fetching current user:", err);
-        toast.error("Failed to load user data.");
-      } finally {
-        setIsLoading(false);
       }
     };
     fetchCurrentUser();
@@ -46,10 +42,15 @@ const UserServices = () => {
     try {
       await axios.delete(
         "https://service-provider-website.onrender.com/api/v1/providers/deleteServicePairs",
-        { data: { index }, withCredentials: true }
+        {
+          data: { index },
+          withCredentials: true,
+        }
       );
-      const updatedServices = services.filter((_, i) => i !== index);
-      const updatedPricing = pricing.filter((_, i) => i !== index);
+      const updatedServices = [...services];
+      const updatedPricing = [...pricing];
+      updatedServices.splice(index, 1);
+      updatedPricing.splice(index, 1);
       setServices(updatedServices);
       setPricing(updatedPricing);
       toast.success("Delete successful");
@@ -96,8 +97,7 @@ const UserServices = () => {
     }
   };
 
-  const handleAddPair = async (e) => {
-    e.preventDefault(); // Use form submission for better accessibility
+  const handleAddPair = async () => {
     if (!newService.trim() || !newPrice.trim()) {
       toast.error("Both service and price are required.");
       return;
@@ -107,8 +107,12 @@ const UserServices = () => {
       await axios.put(
         "https://service-provider-website.onrender.com/api/v1/providers/updateProvider",
         {
+          name: user.name,
           servicesOffered: newService,
           pricing: newPrice,
+          latitude: user.location?.coordinates?.[1] || 0,
+          longitude: user.location?.coordinates?.[0] || 0,
+          address: user.location?.address || "N/A",
         },
         { withCredentials: true }
       );
@@ -126,130 +130,130 @@ const UserServices = () => {
     }
   };
 
-  if (isLoading) return <Loader />;
+  if (!user)
+    return (
+      <Loader />
+    );
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-blue-100 to-purple-200 px-4 py-12">
-      <div className="max-w-4xl w-full bg-white p-6 sm:p-8 rounded-2xl shadow-xl">
-        <h2 className="text-3xl font-bold text-center text-indigo-700 mb-8 tracking-wide">
-          Manage Services
+    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br light:from-blue-100 to-purple-200 px-4 py-12">
+      <div className="max-w-4xl w-full bg-white p-8 rounded-3xl shadow-xl">
+        <h2 className="text-3xl font-bold text-center text-indigo-700 mb-10 tracking-wide">
+          {user.name}'s Service Pricing
         </h2>
 
-        {/* Service list container */}
-        <div className="space-y-4">
-          {services.length > 0 ? (
-            services.map((service, index) => (
-              <div
-                key={index}
-                className={`grid grid-cols-1 md:grid-cols-6 gap-4 items-center p-4 rounded-lg border border-gray-200 transition-all duration-300 ${
-                  editIndex === index ? "bg-indigo-50" : "bg-gray-50 hover:shadow-md"
-                }`}
-              >
-                {/* Service Name & Price Column */}
-                <div className="md:col-span-4 grid grid-cols-1 sm:grid-cols-3 gap-4">
-                  <div className="sm:col-span-2">
-                    {editIndex === index ? (
-                      <input
-                        type="text"
-                        value={editService}
-                        onChange={(e) => setEditService(e.target.value)}
-                        className="w-full border-indigo-300 rounded-md px-3 py-2 text-gray-700 focus:ring-2 focus:ring-indigo-500 outline-none transition"
-                        placeholder="Service Name"
-                      />
-                    ) : (
-                      <h3 className="text-lg font-semibold text-gray-800 break-words">
-                        {service}
-                      </h3>
-                    )}
-                  </div>
-                  <div>
-                    {editIndex === index ? (
-                      <input
-                        type="number"
-                        value={editPrice}
-                        onChange={(e) => setEditPrice(e.target.value)}
-                        className="w-full border-indigo-300 rounded-md px-3 py-2 text-gray-700 focus:ring-2 focus:ring-indigo-500 outline-none transition"
-                        placeholder="Price (₹)"
-                      />
-                    ) : (
-                      <p className="text-gray-700 font-medium text-lg">
-                        ₹{pricing[index]}
-                      </p>
-                    )}
-                  </div>
-                </div>
-
-                {/* Buttons Column -- ✨ FIX APPLIED HERE ✨ */}
-                <div className="md:col-span-2 flex items-center justify-start md:justify-end gap-2 mt-4 md:mt-0">
-                  {editIndex === index ? (
-                    <button
-                      onClick={handleSaveEdit}
-                      disabled={isEditingIndex === index}
-                      className="bg-green-500 hover:bg-green-600 text-white px-4 py-2 rounded-lg flex items-center gap-2 transition shadow-sm disabled:bg-green-300 disabled:cursor-not-allowed transform hover:-translate-y-0.5"
-                    >
-                      <FaSave />
-                      {isEditingIndex === index ? "Saving..." : "Save"}
-                    </button>
-                  ) : (
-                    <button
-                      onClick={() => startEdit(index)}
-                      className="bg-yellow-400 hover:bg-yellow-500 text-white px-4 py-2 rounded-lg flex items-center gap-2 transition shadow-sm transform hover:-translate-y-0.5"
-                    >
-                      <FaEdit /> Edit
-                    </button>
-                  )}
-                  <button
-                    onClick={() => handleDeletePair(index)}
-                    disabled={isDeletingIndex === index}
-                    className="bg-red-500 hover:bg-red-600 text-white px-4 py-2 rounded-lg flex items-center gap-2 transition shadow-sm disabled:bg-red-300 disabled:cursor-not-allowed transform hover:-translate-y-0.5"
-                  >
-                    <FaTrash />
-                    {isDeletingIndex === index ? "Deleting..." : "Delete"}
-                  </button>
-                </div>
+        {/* Service list */}
+        <div className="space-y-6">
+          {services.map((service, index) => (
+            <div
+              key={index}
+              className="flex flex-col sm:flex-row justify-between items-center bg-gray-50 hover:shadow-md border border-gray-200 rounded-xl p-4 gap-4 transition-all"
+            >
+              {/* Service */}
+              <div className="w-full sm:w-1/3 text-center sm:text-left">
+                {editIndex === index ? (
+                  <input
+                    type="text"
+                    value={editService}
+                    onChange={(e) => setEditService(e.target.value)}
+                    className="border border-indigo-300 rounded-md px-4 py-2 w-full text-gray-700 focus:ring-2 focus:ring-indigo-500 outline-none transition"
+                  />
+                ) : (
+                  <h3 className="text-lg font-semibold text-gray-800">
+                    {service}
+                  </h3>
+                )}
               </div>
-            ))
-          ) : (
-            // Empty State
-            <div className="text-center p-8 bg-gray-50 rounded-lg border-2 border-dashed">
-              <h3 className="text-xl font-semibold text-gray-600">No Services Yet</h3>
-              <p className="text-gray-500 mt-2">Add your first service using the form below.</p>
+
+              {/* Price */}
+              <div className="flex items-center gap-4 w-full sm:w-1/3 justify-center">
+                {editIndex === index ? (
+                  <input
+                    type="number"
+                    value={editPrice}
+                    onChange={(e) => setEditPrice(e.target.value)}
+                    className="border border-indigo-300 rounded-md px-4 py-2 w-28 text-center text-gray-700 focus:ring-2 focus:ring-indigo-500 outline-none transition"
+                  />
+                ) : (
+                  <p className="text-gray-700 font-medium text-lg">
+                    ₹{pricing[index]}
+                  </p>
+                )}
+              </div>
+
+              {/* Buttons */}
+              <div className="flex gap-3 w-full sm:w-1/3 justify-center sm:justify-end">
+                {editIndex === index ? (
+                  <button
+                    onClick={handleSaveEdit}
+                    disabled={isEditingIndex === index}
+                    className={`${
+                      isEditingIndex === index
+                        ? "bg-green-300 cursor-not-allowed"
+                        : "bg-green-500 hover:bg-green-600"
+                    } text-white px-4 py-2 rounded-lg flex items-center gap-2 transition shadow-sm`}
+                  >
+                    <FaSave />
+                    {isEditingIndex === index ? "Editing..." : "Save"}
+                  </button>
+                ) : (
+                  <button
+                    onClick={() => startEdit(index)}
+                    className="bg-yellow-400 hover:bg-yellow-500 text-white px-4 py-2 rounded-lg flex items-center gap-2 transition shadow-sm"
+                  >
+                    <FaEdit /> Edit
+                  </button>
+                )}
+                <button
+                  onClick={() => handleDeletePair(index)}
+                  disabled={isDeletingIndex === index}
+                  className={`${
+                    isDeletingIndex === index
+                      ? "bg-red-300 cursor-not-allowed"
+                      : "bg-red-500 hover:bg-red-600"
+                  } text-white px-4 py-2 rounded-lg flex items-center gap-2 transition shadow-sm`}
+                >
+                  <FaTrash />
+                  {isDeletingIndex === index ? "Deleting..." : "Delete"}
+                </button>
+              </div>
             </div>
-          )}
+          ))}
         </div>
 
-        {/* Add New Service Form */}
-        <div className="mt-10 border-t-2 border-gray-200 pt-6">
+        {/* Add New Service */}
+        <div className="mt-10 border-t border-gray-600 pt-6">
           <h3 className="text-xl font-semibold mb-4 text-center text-gray-700">
             Add New Service
           </h3>
-          <form
-            onSubmit={handleAddPair}
-            className="grid grid-cols-1 sm:grid-cols-6 gap-4 items-center"
-          >
+          <div className="flex flex-col sm:flex-row items-center gap-4 justify-center">
             <input
               type="text"
-              placeholder="New service name"
+              placeholder="New service"
               value={newService}
               onChange={(e) => setNewService(e.target.value)}
-              className="sm:col-span-3 border text-gray-600 border-indigo-300 rounded-lg px-4 py-2 focus:outline-none focus:ring-2 focus:ring-indigo-500"
+              className="border text-gray-600 border-indigo-300 rounded-lg px-4 py-2 w-full sm:w-1/2 focus:outline-none focus:ring-2 focus:ring-indigo-500"
             />
             <input
               type="number"
               placeholder="Price (₹)"
               value={newPrice}
               onChange={(e) => setNewPrice(e.target.value)}
-              className="sm:col-span-2 border text-gray-600 border-indigo-300 rounded-lg px-4 py-2 focus:outline-none focus:ring-2 focus:ring-indigo-500"
+              className="border text-gray-600 border-green-300 rounded-lg px-4 py-2 w-full sm:w-1/4 focus:outline-none focus:ring-2 focus:ring-green-500"
             />
             <button
-              type="submit"
+              onClick={handleAddPair}
               disabled={isAdding}
-              className="sm:col-span-1 bg-indigo-600 hover:bg-indigo-700 text-white px-4 py-2 rounded-lg transition-all shadow-md flex items-center justify-center gap-2 disabled:bg-indigo-300 disabled:cursor-not-allowed transform hover:-translate-y-0.5"
+              className={`${
+                isAdding
+                  ? "bg-indigo-300 cursor-not-allowed"
+                  : "bg-indigo-600 hover:bg-indigo-700"
+              } text-white px-6 py-2 rounded-lg transition-all shadow-md flex items-center gap-2`}
             >
               <FaPlus />
-              {isAdding ? "..." : "Add"}
+              {isAdding ? "Adding..." : "Add"}
             </button>
-          </form>
+          </div>
         </div>
       </div>
     </div>

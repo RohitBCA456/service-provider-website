@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { FiTag, FiDollarSign, FiPlus, FiAlertCircle, FiCheckCircle } from "react-icons/fi";
 import Loader from "./Loader"; // 🔹 Import your Loader component
@@ -10,7 +10,16 @@ export default function AddServiceForm() {
     price: "",
   });
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [isLoadingPage, setIsLoadingPage] = useState(true); // 🔹 Page loader
   const [toast, setToast] = useState(null);
+
+  useEffect(() => {
+    // simulate page loading (like fetching user data, etc.)
+    const timer = setTimeout(() => {
+      setIsLoadingPage(false);
+    }, 1000);
+    return () => clearTimeout(timer);
+  }, []);
 
   const handleInputChange = (field, value) => {
     setFormData((prev) => ({
@@ -38,9 +47,7 @@ export default function AddServiceForm() {
         "https://service-provider-website.onrender.com/api/v1/providers/updateProvider",
         {
           method: "PUT",
-          headers: {
-            "Content-Type": "application/json",
-          },
+          headers: { "Content-Type": "application/json" },
           credentials: "include",
           body: JSON.stringify({
             servicesOffered: formData.servicesOffered.trim(),
@@ -50,10 +57,7 @@ export default function AddServiceForm() {
       );
 
       const result = await response.json();
-
-      if (!response.ok) {
-        throw new Error(result.message || "Server Error");
-      }
+      if (!response.ok) throw new Error(result.message || "Server Error");
 
       setToast({ type: "success", message: "Service added successfully!" });
       setFormData({ servicesOffered: "", price: "" });
@@ -68,8 +72,8 @@ export default function AddServiceForm() {
     }
   };
 
-  // 🔹 Show loader while submitting
-  if (isSubmitting) {
+  // 🔹 Show loader only when the page is first loading
+  if (isLoadingPage) {
     return <Loader />;
   }
 
@@ -149,7 +153,7 @@ export default function AddServiceForm() {
             className="w-full flex items-center justify-center py-3 bg-blue-600 text-white font-semibold rounded-lg shadow-md hover:bg-blue-700 transition disabled:opacity-60 disabled:cursor-not-allowed focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
           >
             <FiPlus className="mr-2 h-5 w-5" />
-            <span>Add Service</span>
+            <span>{isSubmitting ? "Adding..." : "Add Service"}</span>
           </button>
         </form>
       </div>
