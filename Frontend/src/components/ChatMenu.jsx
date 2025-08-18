@@ -3,10 +3,12 @@ import { useNavigate } from "react-router-dom";
 import axios from "axios";
 import toast from "react-hot-toast";
 import Container from "./Container";
+import Loader from "./Loader"; // 🔹 Import Loader
 
 const StackListActionMenu = () => {
   const [bookings, setBookings] = useState([]);
   const [userRole, setUserRole] = useState(null);
+  const [loading, setLoading] = useState(true); // 🔹 Page loading state
   const navigate = useNavigate();
 
   const fetchRole = async () => {
@@ -33,15 +35,19 @@ const StackListActionMenu = () => {
       const valid = res.data.bookings?.filter((b) =>
         ["pending", "accepted"].includes(b.status)
       );
-      setBookings(valid);
+      setBookings(valid || []);
     } catch (err) {
       toast.error("Failed to fetch bookings");
     }
   };
 
   useEffect(() => {
-    fetchRole();
-    fetchBookings();
+    const loadData = async () => {
+      setLoading(true);
+      await Promise.all([fetchRole(), fetchBookings()]);
+      setLoading(false);
+    };
+    loadData();
   }, []);
 
   const extractInitials = (name = "") =>
@@ -50,6 +56,11 @@ const StackListActionMenu = () => {
       .map((n) => n[0])
       .join("")
       .toUpperCase();
+
+  // 🔹 Show loader while data is fetching
+  if (loading) {
+    return <Loader />;
+  }
 
   return (
     <Container>
