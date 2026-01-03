@@ -36,6 +36,16 @@ const bookingSchema = new Schema(
       max: 5,
       default: null,
     },
+    paid: {
+      type: Boolean,
+      default: false,
+    },
+    payment: {
+      method: { type: String, default: "mock-paypal" },
+      transactionId: { type: String, default: null },
+      amount: { type: Number, default: 0 },
+      paidAt: { type: Date, default: null },
+    },
   },
   {
     timestamps: true,

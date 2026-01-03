@@ -3,6 +3,7 @@ import axios from "axios";
 import { Link, useLocation, useNavigate } from "react-router-dom";
 import toast from "react-hot-toast";
 import Loader from "../components/Loader";
+import { PayPalScriptProvider, PayPalButtons } from "@paypal/react-paypal-js";
 
 const TableList = () => {
   const [data, setData] = useState([]);
@@ -11,9 +12,8 @@ const TableList = () => {
   const [selectedDate, setSelectedDate] = useState("");
   const [selectedTime, setSelectedTime] = useState("");
   const [role, setRole] = useState(null);
-  const [completedChecks, setCompletedChecks] = useState({});
-  const [ratedBookings, setRatedBookings] = useState({});
   const [actionLoading, setActionLoading] = useState({});
+  const [paypalClientId, setPaypalClientId] = useState(null);
 
   const location = useLocation();
   const status = location.state?.status;
@@ -22,350 +22,250 @@ const TableList = () => {
   const defaultAvatar =
     "https://i.pinimg.com/474x/07/c4/72/07c4720d19a9e9edad9d0e939eca304a.jpg";
 
-  const fetchUserRole = async () => {
-    try {
-      const response = await axios.get(
-        "https://service-provider-website.onrender.com/api/v1/auth/fetchUserRole",
-        { withCredentials: true }
-      );
-      if (response.data.success) {
-        setRole(response.data.userRole);
+  // --- Initial Fetching ---
+  useEffect(() => {
+    const initializeData = async () => {
+      setLoading(true);
+      try {
+        // Fetch User Role
+        const roleRes = await axios.get(
+          "https://service-provider-roan.vercel.app/api/v1/auth/fetchUserRole",
+          { withCredentials: true }
+        );
+        if (roleRes.data.success) setRole(roleRes.data.userRole);
+
+        // Fetch Bookings
+        const bookingRes = await axios.post(
+          "https://service-provider-roan.vercel.app/api/v1/booking/getBookingStatus",
+          { status },
+          { withCredentials: true }
+        );
+        setData(bookingRes.data.bookings || []);
+
+        // Fetch PayPal Client ID
+        const paypalRes = await axios.get(
+          "https://service-provider-roan.vercel.app/api/v1/booking/getPaypalClientId"
+        );
+        if (paypalRes.data.clientId) setPaypalClientId(paypalRes.data.clientId);
+      } catch (error) {
+        console.error("Initialization error:", error);
+      } finally {
+        setLoading(false);
       }
-    } catch (error) {
-      console.log(`Error occured while fetching user role ${error.message}`);
-    }
-  };
+    };
+    initializeData();
+  }, [status]);
 
   const fetchBookings = async () => {
     try {
-      setLoading(true);
       const response = await axios.post(
-        "https://service-provider-website.onrender.com/api/v1/booking/getBookingStatus",
+        "https://service-provider-roan.vercel.app/api/v1/booking/getBookingStatus",
         { status },
         { withCredentials: true }
       );
       setData(response.data.bookings || []);
     } catch (error) {
-      console.error("Error fetching bookings:", error);
-      setData([]);
-    } finally {
-      setLoading(false);
+      console.error("Fetch error:", error);
     }
   };
 
-  useEffect(() => {
-    fetchUserRole();
-    fetchBookings();
-  }, [status]);
-
+  // --- Handlers ---
   const handleSave = async (bookingId) => {
-    if (!selectedDate || !selectedTime) {
-      toast.error("Please provide both date and time.");
-      return;
-    }
-
+    if (!selectedDate || !selectedTime)
+      return toast.error("Provide date and time.");
     setActionLoading((prev) => ({ ...prev, [bookingId]: true }));
-
     try {
       await axios.put(
-        `https://service-provider-website.onrender.com/api/v1/booking/updateStatus/${bookingId}`,
+        `https://service-provider-roan.vercel.app/api/v1/booking/updateStatus/${bookingId}`,
         {
           status: "accepted",
-          timeSlot: {
-            date: selectedDate,
-            time: selectedTime,
-          },
+          timeSlot: { date: selectedDate, time: selectedTime },
         },
         { withCredentials: true }
       );
       toast.success("Approved");
       fetchBookings();
       setEditingRow(null);
-      setSelectedDate("");
-      setSelectedTime("");
     } catch (error) {
-      console.error("Error accepting booking:", error);
       toast.error("Failed to accept");
     } finally {
       setActionLoading((prev) => ({ ...prev, [bookingId]: false }));
     }
   };
 
-  const handleReject = async (bookingId) => {
-    setActionLoading((prev) => ({ ...prev, [bookingId]: true }));
-
+  const handleComplete = async (bookingId) => {
+    if (!window.confirm("Mark as complete?")) return;
     try {
       await axios.put(
-        `https://service-provider-website.onrender.com/api/v1/booking/updateStatus/${bookingId}`,
-        { status: "rejected" },
-        { withCredentials: true }
-      );
-      toast.success("Rejected");
-      fetchBookings();
-    } catch (error) {
-      console.error("Error rejecting booking:", error);
-      toast.error("Failed to reject");
-    } finally {
-      setActionLoading((prev) => ({ ...prev, [bookingId]: false }));
-    }
-  };
-
-  const handleComplete = async (e, bookingId) => {
-    const confirmComplete = window.confirm(
-      "Are you sure you want to mark this as complete?"
-    );
-
-    if (!confirmComplete) {
-      setCompletedChecks((prev) => ({
-        ...prev,
-        [bookingId]: false,
-      }));
-      return;
-    }
-
-    try {
-      await axios.put(
-        `https://service-provider-website.onrender.com/api/v1/booking/updateStatus/${bookingId}`,
+        `https://service-provider-roan.vercel.app/api/v1/booking/updateStatus/${bookingId}`,
         { status: "completed" },
         { withCredentials: true }
       );
-      toast.success("Appointment Completed");
-
-      setCompletedChecks((prev) => ({
-        ...prev,
-        [bookingId]: true,
-      }));
-
+      toast.success("Completed");
       fetchBookings();
     } catch (error) {
-      console.error("Error marking complete:", error);
-      toast.error("Failed to mark as completed");
+      toast.error("Failed to complete");
     }
   };
 
-  const handleRating = async (bookingId, ratingValue) => {
+  const handleRating = async (bookingId, rating) => {
     try {
       await axios.post(
-        "https://service-provider-website.onrender.com/api/v1/booking/submitRating",
-        { bookingId, rating: ratingValue },
+        "https://service-provider-roan.vercel.app/api/v1/booking/submitRating",
+        { bookingId, rating },
         { withCredentials: true }
       );
-      toast.success("Thank you for rating!");
-      await fetchBookings();
+      toast.success("Rated!");
+      fetchBookings();
     } catch (error) {
-      toast.error("Failed to submit rating.");
-      console.error("Rating error:", error);
+      toast.error("Rating failed");
     }
   };
 
-  const renderButtons = (bookingId, idx) => {
-    if (role !== "provider") return null;
-
-    if (editingRow === idx) {
-      return (
-        <div className="flex flex-col gap-2 p-3 bg-white rounded-xl shadow-md w-72">
-          <label className="text-sm font-medium text-gray-700">
-            Select Date
-          </label>
-          <input
-            type="date"
-            className="px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 text-black"
-            value={selectedDate}
-            onChange={(e) => setSelectedDate(e.target.value)}
-          />
-          <label className="text-sm font-medium text-gray-700 mt-1">
-            Select Time
-          </label>
-          <input
-            type="time"
-            className="px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 text-black"
-            value={selectedTime}
-            onChange={(e) => setSelectedTime(e.target.value)}
-          />
-          <button
-            disabled={actionLoading[bookingId]}
-            className={`mt-3 px-4 py-2 rounded-md font-semibold shadow-md transition duration-200 text-white ${
-              actionLoading[bookingId]
-                ? "bg-blue-300 cursor-not-allowed"
-                : "bg-gradient-to-r from-blue-500 to-indigo-600 hover:from-blue-600 hover:to-indigo-700"
-            }`}
-            onClick={() => handleSave(bookingId)}
-          >
-            {actionLoading[bookingId] ? "Saving..." : "Save Slot"}
-          </button>
-        </div>
-      );
-    }
-
-    return (
-      <div className="flex gap-2">
-        <button
-          className="bg-green-500 px-3 py-1 rounded text-white hover:bg-green-600 disabled:opacity-50"
-          onClick={() => setEditingRow(idx)}
-          disabled={actionLoading[bookingId]}
-        >
-          {actionLoading[bookingId] ? "Loading..." : "Accept"}
-        </button>
-        <button
-          className="bg-red-500 px-3 py-1 rounded text-white hover:bg-red-600 disabled:opacity-50"
-          onClick={() => handleReject(bookingId)}
-          disabled={actionLoading[bookingId]}
-        >
-          {actionLoading[bookingId] ? "..." : "Reject"}
-        </button>
-      </div>
-    );
-  };
+ if (!paypalClientId) return <Loader />;
 
   return (
-    <div className="min-h-screen w-full p-7 overflow-x-auto">
-      {loading ? (
-        <Loader />
-      ) : data.length === 0 ? (
-        <p className="text-3xl text-center mt-20">No bookings found.</p>
-      ) : (
-        <table className="w-full text-left border-collapse min-w-[800px]">
-          <thead>
-            <tr className="border-b border-white/30">
-              <th className="p-3">User</th>
-              <th className="p-3 md:table-cell">Service(s)</th>
-              <th className="p-3 md:table-cell">Email</th>
-              <th className="p-3">TimeSlot</th>
-              <th className="p-3">Status</th>
-              {status === "completed" && role === "customer" && (
-                <th className="p-3">Rate</th>
-              )}
-              {status === "accepted" && role === "provider" && (
-                <th className="p-3">Complete</th>
-              )}
-              {status === "pending" && role === "provider" && (
-                <th className="p-3">Actions</th>
-              )}
-              {role === "customer" && <th className="p-3">Rating</th>}
-            </tr>
-          </thead>
-          <tbody>
-            {data.map((booking, idx) => (
-              <tr key={idx} className="border-b border-white/10 align-middle">
-                <td className="p-3 min-w-[180px] whitespace-nowrap">
-                  <div className="flex items-center gap-3">
-                    <img
-                      onClick={() => {
-                        if (role === "customer") {
-                          navigate("/Profile", {
-                            state: { providerId: booking.user?.id },
-                          });
-                        }
-                      }}
-                      src={booking.user?.avatar || defaultAvatar}
-                      alt="avatar"
-                      onError={(e) => (e.target.src = defaultAvatar)}
-                      className="w-10 h-10 rounded-full object-cover shrink-0"
-                    />
-
-                    <span className="text-sm font-medium truncate max-w-[120px]">
-                      {booking.user?.name || "User"}
-                    </span>
-                  </div>
-                </td>
-                <td className="p-3 md:table-cell align-middle">
-                  {(booking.services || []).join(", ")}
-                </td>
-                <td className="p-3 md:table-cell align-middle">
-                  {booking.user?.email || "N/A"}
-                </td>
-                <td className="p-3 min-w-[200px] whitespace-nowrap align-middle">
-                  {booking.timeSlot?.date && booking.timeSlot?.time ? (
-                    <div className="text-sm text-green-600 font-medium">
-                      {new Date(
-                        `${booking.timeSlot.date}T${booking.timeSlot.time}`
-                      ).toLocaleString([], {
-                        hour: "2-digit",
-                        minute: "2-digit",
-                        hour12: true,
-                        day: "2-digit",
-                        month: "short",
-                        year: "numeric",
-                      })}
-                    </div>
-                  ) : (
-                    <span className="text-xs text-red-400 italic">
-                      No slot assigned
-                    </span>
-                  )}
-                </td>
-                <td className="p-3 align-middle">
-                  <span
-                    className={`inline-block px-2 py-1 rounded-full text-xs capitalize ${
-                      booking.status === "accepted"
-                        ? "bg-green-500"
-                        : booking.status === "rejected"
-                        ? "bg-red-500"
-                        : booking.status === "completed"
-                        ? "bg-blue-500"
-                        : "bg-yellow-500"
-                    }`}
-                  >
-                    {booking.status}
-                  </span>
-                </td>
-
-                {booking.status === "completed" && role === "customer" && (
-                  <td className="p-3 align-middle">
-                    <div className="flex items-center gap-1">
-                      {[1, 2, 3, 4, 5].map((n) => (
-                        <button
-                          key={n}
-                          type="button"
-                          onClick={() => handleRating(booking.bookingId, n)}
-                          disabled={!!booking.rating}
-                          className={`text-xl transition-colors duration-200 ${
-                            booking.rating >= n
-                              ? "text-yellow-400"
-                              : "text-gray-300"
-                          } ${!booking.rating ? "hover:text-yellow-500" : ""}`}
-                        >
-                          ★
-                        </button>
-                      ))}
-                      {booking.rating && (
-                        <span className="ml-2 text-green-500 text-sm font-medium mt-1">
-                          Rated ({booking.rating})
-                        </span>
-                      )}
-                    </div>
-                  </td>
+    <PayPalScriptProvider
+      options={{
+        "client-id": paypalClientId || "test",
+        currency: "USD",
+        intent: "capture",
+      }}
+    >
+      <div className="min-h-screen w-full p-7 overflow-x-auto">
+        {data.length === 0 ? (
+          <p className="text-3xl text-center mt-20">No bookings found.</p>
+        ) : (
+          <table className="w-full text-left border-collapse min-w-[800px]">
+            <thead>
+              <tr className="border-b border-red/30">
+                <th className="p-3">User</th>
+                <th className="p-3">Service</th>
+                <th className="p-3">TimeSlot</th>
+                <th className="p-3">Status</th>
+                {role === "customer" && (
+                  <th className="p-3">Payment & Rating</th>
                 )}
-
                 {status === "accepted" && role === "provider" && (
-                  <td className="p-3 text-center">
-                    <button
-                      onClick={(e) => handleComplete(e, booking.bookingId)}
-                      disabled={!!completedChecks[booking.bookingId]}
-                      className={`px-3 py-1 rounded font-medium text-white transition-colors ${
-                        completedChecks[booking.bookingId]
-                          ? "bg-gray-400 cursor-not-allowed"
-                          : "bg-green-500 hover:bg-green-600"
-                      }`}
-                    >
-                      {completedChecks[booking.bookingId]
-                        ? "Completed"
-                        : "Mark Complete"}
-                    </button>
-                  </td>
-                )}
-
-                {status === "pending" && role === "provider" && (
-                  <td className="p-3 align-middle">
-                    {renderButtons(booking.bookingId, idx)}
-                  </td>
+                  <th className="p-3">Actions</th>
                 )}
               </tr>
-            ))}
-          </tbody>
-        </table>
-      )}
-    </div>
+            </thead>
+            <tbody>
+              {data.map((booking, idx) => (
+                <tr
+                  key={booking.bookingId || idx}
+                  className="border-b border-red/10"
+                >
+                  <td className="p-3">
+                    <div className="flex items-center gap-3">
+                      <img
+                        src={booking.user?.avatar || defaultAvatar}
+                        className="w-10 h-10 rounded-full"
+                        alt="avatar"
+                      />
+                      <span>{booking.user?.name}</span>
+                    </div>
+                  </td>
+                  <td className="p-3">{(booking.services || []).join(", ")}</td>
+                  <td className="p-3">{booking.timeSlot?.date || "Pending"}</td>
+                  <td className="p-3">
+                    <span
+                      className={`px-2 py-1 rounded-full text-xs capitalize ${
+                        booking.status === "accepted"
+                          ? "bg-green-500"
+                          : booking.status === "completed"
+                          ? "bg-blue-500"
+                          : "bg-yellow-500"
+                      }`}
+                    >
+                      {booking.status}
+                    </span>
+                  </td>
+
+                  {/* PayPal Integration Section */}
+                  {booking.status === "completed" && role === "customer" && (
+                    <td className="p-3">
+                      {!booking.paid ? (
+                        <div className="w-44">
+                          <PayPalButtons
+                            forceReRender={[booking.bookingId, paypalClientId]}
+                            style={{
+                              layout: "horizontal",
+                              height: 32,
+                              label: "pay",
+                              tagline: false,
+                            }}
+                            createOrder={async () => {
+                              try {
+                                const res = await axios.post(
+                                  "https://service-provider-roan.vercel.app/api/v1/booking/createPaypalOrder",
+                                  { bookingId: booking.bookingId },
+                                  { withCredentials: true }
+                                );
+                                return res.data.id; // Must return the Order ID from PayPal
+                              } catch (err) {
+                                toast.error("Payment initiation failed");
+                              }
+                            }}
+                            onApprove={async (data) => {
+                              try {
+                                const res = await axios.post(
+                                  "https://service-provider-roan.vercel.app/api/v1/booking/capturePaypalOrder",
+                                  {
+                                    orderID: data.orderID,
+                                    bookingId: booking.bookingId,
+                                  },
+                                  { withCredentials: true }
+                                );
+                                if (res.data.success) {
+                                  toast.success("Paid Successfully");
+                                  fetchBookings();
+                                }
+                              } catch (err) {
+                                toast.error("Verification failed");
+                              }
+                            }}
+                          />
+                        </div>
+                      ) : (
+                        <div className="flex gap-1">
+                          {[1, 2, 3, 4, 5].map((n) => (
+                            <button
+                              key={n}
+                              onClick={() => handleRating(booking.bookingId, n)}
+                              className={
+                                booking.rating >= n
+                                  ? "text-yellow-400"
+                                  : "text-gray-300"
+                              }
+                            >
+                              ★
+                            </button>
+                          ))}
+                        </div>
+                      )}
+                    </td>
+                  )}
+
+                  {/* Provider Action Section */}
+                  {booking.status === "accepted" && role === "provider" && (
+                    <td className="p-3">
+                      <button
+                        onClick={() => handleComplete(booking.bookingId)}
+                        className="bg-green-500 text-white px-3 py-1 rounded"
+                      >
+                        Complete
+                      </button>
+                    </td>
+                  )}
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        )}
+      </div>
+    </PayPalScriptProvider>
   );
 };
 

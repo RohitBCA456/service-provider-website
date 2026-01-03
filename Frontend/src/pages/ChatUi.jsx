@@ -24,7 +24,7 @@ const ChatPage = () => {
 
       try {
         const res = await fetch(
-          "https://service-provider-website.onrender.com/api/v1/auth/markAsRead",
+          "https://service-provider-roan.vercel.app/api/v1/auth/markAsRead",
           {
             method: "POST",
             headers: { "Content-Type": "application/json" },
@@ -49,7 +49,7 @@ const ChatPage = () => {
     const fetchCurrentUser = async () => {
       try {
         const res = await fetch(
-          "https://service-provider-website.onrender.com/api/v1/auth/getCurrentUser",
+          "https://service-provider-roan.vercel.app/api/v1/auth/getCurrentUser",
           {
             credentials: "include", // needed to send cookies
           }
@@ -75,7 +75,7 @@ const ChatPage = () => {
     const fetchUserDetails = async () => {
       try {
         const res = await fetch(
-          `https://service-provider-website.onrender.com/api/v1/auth/getUserDetails/${targetUserId}`
+          `https://service-provider-roan.vercel.app/api/v1/auth/getUserDetails/${targetUserId}`
         );
         const data = await res.json();
         if (data.success) {
@@ -98,7 +98,7 @@ const ChatPage = () => {
     const fetchMessages = async () => {
       try {
         const res = await fetch(
-          `https://service-provider-website.onrender.com/api/v1/auth/getChatHistory/${roomId}`
+          `https://service-provider-roan.vercel.app/api/v1/auth/getChatHistory/${roomId}`
         );
         const data = await res.json();
         if (data.success) {

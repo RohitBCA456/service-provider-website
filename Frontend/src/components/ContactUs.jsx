@@ -27,7 +27,7 @@ export const ContactUsMapForm = () => {
 
     try {
       const res = await axios.post(
-        "https://service-provider-website.onrender.com/api/v1/auth/sendEmail",
+        "https://service-provider-roan.vercel.app/api/v1/auth/sendEmail",
         {
           name: formData.name,
           email: formData.email,

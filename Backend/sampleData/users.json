@@ -1,162 +1,194 @@
+
 [
   {
-    "name": "Provider 1",
-    "email": "provider1@example.com",
-    "password": "password123",
+    "name": "Amit Provider",
+    "email": "amit.provider@gmail.com",
+    "password": "$2b$10$76YxTq8B6eM8V8f.OQ0C.uWJ6I4m0pA.7Uu7W.7E3V4G6j5G5H6mG",
     "role": "provider",
-    "avatar": "",
-    "rating": 3.5,
-    "review": 10,
-    "servicesOffered": ["plumber", "bathroom fittings"],
-    "availability": true,
-    "location": {
-      "type": "Point",
-      "coordinates": [91.7635072, 26.1586944],
-      "address": "Near Point 1, Tinsukia, Assam"
-    }
+    "rating": 4.5,
+    "review": 120,
+    "location": { "type": "Point", "coordinates": [94.9020061, 27.4517823], "address": "Dibrugarh, Assam" },
+    "servicesOffered": ["Electrician", "Wiring"],
+    "Pricing": [300, 500],
+    "availability": true
   },
   {
-    "name": "Provider 2",
-    "email": "provider2@example.com",
-    "password": "password123",
+    "name": "Rohit Provider",
+    "email": "rohit.provider@gmail.com",
+    "password": "$2b$10$76YxTq8B6eM8V8f.OQ0C.uWJ6I4m0pA.7Uu7W.7E3V4G6j5G5H6mG",
     "role": "provider",
-    "avatar": "",
-    "rating": 3.6,
-    "review": 11,
-    "servicesOffered": ["plumber", "bathroom fittings"],
-    "availability": true,
-    "location": {
-      "type": "Point",
-      "coordinates": [91.7685072, 26.1636944],
-      "address": "Near Point 2, Tinsukia, Assam"
-    }
-  },
-  {
-    "name": "Provider 3",
-    "email": "provider3@example.com",
-    "password": "password123",
-    "role": "provider",
-    "avatar": "",
-    "rating": 3.7,
-    "review": 12,
-    "servicesOffered": ["plumber", "bathroom fittings"],
-    "availability": true,
-    "location": {
-      "type": "Point",
-      "coordinates": [91.7735072, 26.1686944],
-      "address": "Near Point 3, Tinsukia, Assam"
-    }
-  },
-  {
-    "name": "Provider 4",
-    "email": "provider4@example.com",
-    "password": "password123",
-    "role": "provider",
-    "avatar": "",
-    "rating": 3.8,
-    "review": 13,
-    "servicesOffered": ["plumber", "bathroom fittings"],
-    "availability": true,
-    "location": {
-      "type": "Point",
-      "coordinates": [91.7785072, 26.1736944],
-      "address": "Near Point 4, Tinsukia, Assam"
-    }
-  },
-  {
-    "name": "Provider 5",
-    "email": "provider5@example.com",
-    "password": "password123",
-    "role": "provider",
-    "avatar": "",
-    "rating": 3.9,
-    "review": 14,
-    "servicesOffered": ["plumber", "bathroom fittings"],
-    "availability": true,
-    "location": {
-      "type": "Point",
-      "coordinates": [91.7835072, 26.1786944],
-      "address": "Near Point 5, Tinsukia, Assam"
-    }
-  },
-  {
-    "name": "Provider 6",
-    "email": "provider6@example.com",
-    "password": "password123",
-    "role": "provider",
-    "avatar": "",
-    "rating": 4.0,
-    "review": 15,
-    "servicesOffered": ["plumber", "bathroom fittings"],
-    "availability": true,
-    "location": {
-      "type": "Point",
-      "coordinates": [91.7885072, 26.1836944],
-      "address": "Near Point 6, Tinsukia, Assam"
-    }
-  },
-  {
-    "name": "Provider 7",
-    "email": "provider7@example.com",
-    "password": "password123",
-    "role": "provider",
-    "avatar": "",
-    "rating": 4.1,
-    "review": 16,
-    "servicesOffered": ["plumber", "bathroom fittings"],
-    "availability": true,
-    "location": {
-      "type": "Point",
-      "coordinates": [91.7935072, 26.1886944],
-      "address": "Near Point 7, Tinsukia, Assam"
-    }
-  },
-  {
-    "name": "Provider 8",
-    "email": "provider8@example.com",
-    "password": "password123",
-    "role": "provider",
-    "avatar": "",
     "rating": 4.2,
-    "review": 17,
-    "servicesOffered": ["plumber", "bathroom fittings"],
-    "availability": true,
-    "location": {
-      "type": "Point",
-      "coordinates": [91.7985072, 26.1936944],
-      "address": "Near Point 8, Tinsukia, Assam"
-    }
+    "review": 95,
+    "location": { "type": "Point", "coordinates": [94.910112, 27.460221], "address": "Tinsukia, Assam" },
+    "servicesOffered": ["Plumber"],
+    "Pricing": [250],
+    "availability": true
   },
   {
-    "name": "Provider 9",
-    "email": "provider9@example.com",
-    "password": "password123",
+    "name": "Suresh Provider",
+    "email": "suresh.provider@gmail.com",
+    "password": "$2b$10$76YxTq8B6eM8V8f.OQ0C.uWJ6I4m0pA.7Uu7W.7E3V4G6j5G5H6mG",
     "role": "provider",
-    "avatar": "",
+    "rating": 4.8,
+    "review": 200,
+    "location": { "type": "Point", "coordinates": [94.880321, 27.430987], "address": "Duliajan, Assam" },
+    "servicesOffered": ["AC Repair"],
+    "Pricing": [600],
+    "availability": true
+  },
+  {
+    "name": "Manoj Provider",
+    "email": "manoj.provider@gmail.com",
+    "password": "$2b$10$76YxTq8B6eM8V8f.OQ0C.uWJ6I4m0pA.7Uu7W.7E3V4G6j5G5H6mG",
+    "role": "provider",
+    "rating": 4.1,
+    "review": 60,
+    "location": { "type": "Point", "coordinates": [94.930456, 27.470112], "address": "Chabua, Assam" },
+    "servicesOffered": ["Carpenter"],
+    "Pricing": [400],
+    "availability": true
+  },
+  {
+    "name": "Deepak Provider",
+    "email": "deepak.provider@gmail.com",
+    "password": "$2b$10$76YxTq8B6eM8V8f.OQ0C.uWJ6I4m0pA.7Uu7W.7E3V4G6j5G5H6mG",
+    "role": "provider",
+    "rating": 3.9,
+    "review": 40,
+    "location": { "type": "Point", "coordinates": [94.850789, 27.420345], "address": "Naharkatia, Assam" },
+    "servicesOffered": ["Painter"],
+    "Pricing": [350],
+    "availability": true
+  },
+  {
+    "name": "Karan Provider",
+    "email": "karan.provider@gmail.com",
+    "password": "$2b$10$76YxTq8B6eM8V8f.OQ0C.uWJ6I4m0pA.7Uu7W.7E3V4G6j5G5H6mG",
+    "role": "provider",
+    "rating": 4.6,
+    "review": 180,
+    "location": { "type": "Point", "coordinates": [94.965432, 27.480987], "address": "Moran, Assam" },
+    "servicesOffered": ["Mechanic"],
+    "Pricing": [500],
+    "availability": true
+  },
+  {
+    "name": "Nitin Provider",
+    "email": "nitin.provider@gmail.com",
+    "password": "$2b$10$76YxTq8B6eM8V8f.OQ0C.uWJ6I4m0pA.7Uu7W.7E3V4G6j5G5H6mG",
+    "role": "provider",
+    "rating": 4.0,
+    "review": 70,
+    "location": { "type": "Point", "coordinates": [94.899999, 27.455555], "address": "Jorhat, Assam" },
+    "servicesOffered": ["Laptop Repair"],
+    "Pricing": [700],
+    "availability": true
+  },
+  {
+    "name": "Ajay Provider",
+    "email": "ajay.provider@gmail.com",
+    "password": "$2b$10$76YxTq8B6eM8V8f.OQ0C.uWJ6I4m0pA.7Uu7W.7E3V4G6j5G5H6mG",
+    "role": "provider",
+    "rating": 3.8,
+    "review": 55,
+    "location": { "type": "Point", "coordinates": [94.920111, 27.445111], "address": "Sibsagar, Assam" },
+    "servicesOffered": ["Mobile Repair"],
+    "Pricing": [300],
+    "availability": true
+  },
+  {
+    "name": "Sunil Provider",
+    "email": "sunil.provider@gmail.com",
+    "password": "$2b$10$76YxTq8B6eM8V8f.OQ0C.uWJ6I4m0pA.7Uu7W.7E3V4G6j5G5H6mG",
+    "role": "provider",
+    "rating": 4.9,
+    "review": 250,
+    "location": { "type": "Point", "coordinates": [94.940222, 27.465222], "address": "Golaghat, Assam" },
+    "servicesOffered": ["Home Cleaning"],
+    "Pricing": [200],
+    "availability": true
+  },
+  {
+    "name": "Vikas Provider",
+    "email": "vikas.provider@gmail.com",
+    "password": "$2b$10$76YxTq8B6eM8V8f.OQ0C.uWJ6I4m0pA.7Uu7W.7E3V4G6j5G5H6mG",
+    "role": "provider",
     "rating": 4.3,
-    "review": 18,
-    "servicesOffered": ["plumber", "bathroom fittings"],
-    "availability": true,
-    "location": {
-      "type": "Point",
-      "coordinates": [91.8035072, 26.1986944],
-      "address": "Near Point 9, Tinsukia, Assam"
-    }
+    "review": 110,
+    "location": { "type": "Point", "coordinates": [94.970333, 27.485333], "address": "Bokakhat, Assam" },
+    "servicesOffered": ["Pest Control"],
+    "Pricing": [800],
+    "availability": true
+  },
+
+  {
+    "name": "Rahul Customer",
+    "email": "rahul.customer@gmail.com",
+    "password": "$2b$10$76YxTq8B6eM8V8f.OQ0C.uWJ6I4m0pA.7Uu7W.7E3V4G6j5G5H6mG",
+    "role": "customer",
+    "location": { "type": "Point", "coordinates": [94.905111, 27.452111], "address": "Dibrugarh Town" }
   },
   {
-    "name": "Provider 10",
-    "email": "provider10@example.com",
-    "password": "password123",
-    "role": "provider",
-    "avatar": "",
-    "rating": 4.4,
-    "review": 19,
-    "servicesOffered": ["plumber", "bathroom fittings"],
-    "availability": true,
-    "location": {
-      "type": "Point",
-      "coordinates": [91.8085072, 26.2036944],
-      "address": "Near Point 10, Tinsukia, Assam"
-    }
+    "name": "Ankit Customer",
+    "email": "ankit.customer@gmail.com",
+    "password": "$2b$10$76YxTq8B6eM8V8f.OQ0C.uWJ6I4m0pA.7Uu7W.7E3V4G6j5G5H6mG",
+    "role": "customer",
+    "location": { "type": "Point", "coordinates": [94.915222, 27.462222], "address": "Banipur, Assam" }
+  },
+  {
+    "name": "Neha Customer",
+    "email": "neha.customer@gmail.com",
+    "password": "$2b$10$76YxTq8B6eM8V8f.OQ0C.uWJ6I4m0pA.7Uu7W.7E3V4G6j5G5H6mG",
+    "role": "customer",
+    "location": { "type": "Point", "coordinates": [94.925333, 27.472333], "address": "Lahoal, Assam" }
+  },
+  {
+    "name": "Pooja Customer",
+    "email": "pooja.customer@gmail.com",
+    "password": "$2b$10$76YxTq8B6eM8V8f.OQ0C.uWJ6I4m0pA.7Uu7W.7E3V4G6j5G5H6mG",
+    "role": "customer",
+    "location": { "type": "Point", "coordinates": [94.935444, 27.482444], "address": "Mohanbari, Assam" }
+  },
+  {
+    "name": "Kunal Customer",
+    "email": "kunal.customer@gmail.com",
+    "password": "$2b$10$76YxTq8B6eM8V8f.OQ0C.uWJ6I4m0pA.7Uu7W.7E3V4G6j5G5H6mG",
+    "role": "customer",
+    "location": { "type": "Point", "coordinates": [94.945555, 27.492555], "address": "Nidhirpur, Assam" }
+  },
+  {
+    "name": "Sonal Customer",
+    "email": "sonal.customer@gmail.com",
+    "password": "$2b$10$76YxTq8B6eM8V8f.OQ0C.uWJ6I4m0pA.7Uu7W.7E3V4G6j5G5H6mG",
+    "role": "customer",
+    "location": { "type": "Point", "coordinates": [94.955666, 27.502666], "address": "Digboi, Assam" }
+  },
+  {
+    "name": "Aakash Customer",
+    "email": "aakash.customer@gmail.com",
+    "password": "$2b$10$76YxTq8B6eM8V8f.OQ0C.uWJ6I4m0pA.7Uu7W.7E3V4G6j5G5H6mG",
+    "role": "customer",
+    "location": { "type": "Point", "coordinates": [94.965777, 27.512777], "address": "Margherita, Assam" }
+  },
+  {
+    "name": "Riya Customer",
+    "email": "riya.customer@gmail.com",
+    "password": "$2b$10$76YxTq8B6eM8V8f.OQ0C.uWJ6I4m0pA.7Uu7W.7E3V4G6j5G5H6mG",
+    "role": "customer",
+    "location": { "type": "Point", "coordinates": [94.975888, 27.522888], "address": "Doom Dooma, Assam" }
+  },
+  {
+    "name": "Mohit Customer",
+    "email": "mohit.customer@gmail.com",
+    "password": "$2b$10$76YxTq8B6eM8V8f.OQ0C.uWJ6I4m0pA.7Uu7W.7E3V4G6j5G5H6mG",
+    "role": "customer",
+    "location": { "type": "Point", "coordinates": [94.985999, 27.532999], "address": "Talap, Assam" }
+  },
+  {
+    "name": "Simran Customer",
+    "email": "simran.customer@gmail.com",
+    "password": "$2b$10$76YxTq8B6eM8V8f.OQ0C.uWJ6I4m0pA.7Uu7W.7E3V4G6j5G5H6mG",
+    "role": "customer",
+    "location": { "type": "Point", "coordinates": [94.996111, 27.543111], "address": "Saikhowa, Assam" }
   }
 ]

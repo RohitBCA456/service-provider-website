@@ -2,6 +2,7 @@ import { Booking } from "../Models/Booking.Model.js";
 import { User } from "../Models/User.Model.js";
 import { Message } from "../Models/Message.Model.js";
 import moment from "moment";
+import axios from "axios";
 
 export const bookProvider = async (req, res) => {
   const providerId = req.body.providerId;
@@ -117,6 +118,8 @@ export const getBookingStatus = async (req, res) => {
         services: booking.serviceName,
         timeSlot: booking.timeSlot || null,
         rating: booking.rating || null,
+        paid: booking.paid || false,
+        payment: booking.payment || null,
         unreadCount: unreadCounts[index], // 🔥 Add unread message count
         user: {
           id: targetId,
@@ -196,7 +199,7 @@ export const updateStatus = async (req, res) => {
     const { status, timeSlot } = req.body;
 
     const user = await User.findById(req.user?.id);
-    user.availability = ['pending', 'completed', 'rejected'].includes(status);
+    user.availability = ["pending", "completed", "rejected"].includes(status);
     await user.save({ validateBeforeSave: false });
 
     const updated = await Booking.findByIdAndUpdate(
@@ -209,6 +212,139 @@ export const updateStatus = async (req, res) => {
   } catch (err) {
     console.error(err);
     res.status(500).json({ message: "Server Error" });
+  }
+};
+
+// Helper to get PayPal Access Token
+const getPaypalAccessToken = async () => {
+  const auth = Buffer.from(
+    `${process.env.PAYPAL_CLIENT_ID}:${process.env.PAYPAL_CLIENT_SECRET}`
+  ).toString("base64");
+  const response = await axios({
+    url: "https://api-m.sandbox.paypal.com/v1/oauth2/token",
+    method: "post",
+    data: "grant_type=client_credentials",
+    headers: { Authorization: `Basic ${auth}` },
+  });
+  return response.data.access_token;
+};
+
+export const createPaypalOrder = async (req, res) => {
+  try {
+    const { bookingId } = req.body;
+
+    const booking = await Booking.findById(bookingId);
+    if (!booking) return res.status(404).json({ message: "Booking not found" });
+
+    const provider = await User.findById(booking.providerId);
+    if (!provider) return res.status(404).json({ message: "Provider not found" });
+
+    let totalAmount = 0;
+
+    // Use parallel array logic based on your User Model
+    if (provider.servicesOffered && provider.Pricing) {
+      booking.serviceName.forEach((bookedService) => {
+        // 1. Find the index of the service in the provider's list (case-insensitive)
+        const serviceIndex = provider.servicesOffered.findIndex(
+          (s) => s?.trim().toLowerCase() === bookedService?.trim().toLowerCase()
+        );
+
+        // 2. If found, get the price at the SAME index from the Pricing array
+        if (serviceIndex !== -1 && provider.Pricing[serviceIndex]) {
+          totalAmount += provider.Pricing[serviceIndex];
+        } else {
+          console.warn(`Price not found for service: "${bookedService}" at index ${serviceIndex}`);
+        }
+      });
+    }
+
+    console.log("Calculated Total Amount:", totalAmount);
+
+    // CRITICAL: PayPal validation check
+    if (totalAmount <= 0) {
+      return res.status(400).json({
+        error: "Total amount must be greater than zero. Ensure provider has prices set for these services.",
+      });
+    }
+
+    const accessToken = await getPaypalAccessToken();
+
+    // 3. Create PayPal Order
+    const response = await axios({
+      url: "https://api-m.sandbox.paypal.com/v2/checkout/orders",
+      method: "post",
+      headers: {
+        Authorization: `Bearer ${accessToken}`,
+        "Content-Type": "application/json",
+      },
+      data: {
+        intent: "CAPTURE",
+        purchase_units: [
+          {
+            reference_id: bookingId.toString(),
+            amount: {
+              currency_code: "USD",
+              value: totalAmount.toFixed(2), // Formats 50 to "50.00"
+            },
+            description: `Services: ${booking.serviceName.join(", ")}`,
+          },
+        ],
+      },
+    });
+
+    res.status(200).json({ id: response.data.id });
+  } catch (error) {
+    console.error("PayPal Error:", error.response?.data || error.message);
+    res.status(500).json({ error: "Failed to create PayPal order" });
+  }
+};
+
+// 2. Capture Order & Update DB
+export const capturePaypalOrder = async (req, res) => {
+  try {
+    const { orderID, bookingId } = req.body;
+    const accessToken = await getPaypalAccessToken();
+
+    const response = await axios({
+      url: `https://api-m.sandbox.paypal.com/v2/checkout/orders/${orderID}/capture`,
+      method: "post",
+      headers: {
+        Authorization: `Bearer ${accessToken}`,
+        "Content-Type": "application/json",
+      },
+    });
+
+    if (response.data.status === "COMPLETED") {
+      // Update your database
+      const booking = await Booking.findById(bookingId);
+      booking.paid = true;
+      booking.payment = {
+        method: "paypal",
+        transactionId: response.data.id,
+        amount:
+          response.data.purchase_units[0].payments.captures[0].amount.value,
+        paidAt: new Date(),
+      };
+      await booking.save();
+      return res
+        .status(200)
+        .json({ success: true, message: "Payment Verified" });
+    }
+
+    res.status(400).json({ success: false, message: "Payment not completed" });
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+};
+
+// Return PayPal client id (safe to expose)
+export const getPaypalClientId = async (req, res) => {
+  try {
+    const clientId = process.env.PAYPAL_CLIENT_ID || null;
+    return res.status(200).json({ clientId });
+  } catch (err) {
+    console.error("Error fetching PayPal client id:", err);
+    return res.status(500).json({ message: "Server Error" });
   }
 };
 
@@ -229,6 +365,11 @@ export const submitRating = async (req, res) => {
       return res
         .status(400)
         .json({ message: "Can only rate completed appointments" });
+
+    if (!booking.paid)
+      return res
+        .status(400)
+        .json({ message: "Payment required before rating" });
 
     if (booking.rating) {
       return res.status(400).json({ message: "Booking already rated" });

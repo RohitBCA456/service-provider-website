@@ -12,7 +12,7 @@ cloudinary.config({
 });
 
 const uploadOnCloudinary = async (localFilePath) => {
-  console.log("📦 Uploading file:", localFilePath);
+  console.log("Uploading file:", localFilePath);
 
   try {
     if (!localFilePath) return null;
@@ -27,10 +27,10 @@ const uploadOnCloudinary = async (localFilePath) => {
       fs.unlinkSync(localFilePath);
     }
 
-    console.log("✅ Cloudinary upload success:", response.secure_url);
+    console.log("Cloudinary upload success:", response.secure_url);
     return response;
   } catch (error) {
-    console.error("❌ Cloudinary upload failed:", error.message || error);
+    console.error("Cloudinary upload failed:", error.message || error);
     return null;
   }
 };

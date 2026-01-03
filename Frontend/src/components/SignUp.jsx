@@ -57,7 +57,7 @@ function CreateAccount() {
 
     // ✅ Dynamic endpoint based on role
     const url =
-      "https://service-provider-website.onrender.com/api/v1/auth/registerUser";
+      "https://service-provider-roan.vercel.app/api/v1/auth/registerUser";
 
     toast
       .promise(

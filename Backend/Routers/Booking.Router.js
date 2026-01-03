@@ -6,6 +6,9 @@ import {
   getBookingStats,
   getBookingStatus,
   submitRating,
+  createPaypalOrder,
+  capturePaypalOrder,
+  getPaypalClientId,
   updateStatus,
 } from "../Controllers/Booking.Controller.js";
 
@@ -16,6 +19,9 @@ router.route("/getBookingStatus").post(authMiddleware, getBookingStatus);
 router.route("/getBookingStats").get(authMiddleware, getBookingStats);
 router.route("/updateStatus/:id").put(authMiddleware, updateStatus);
 router.route("/submitRating").post(submitRating);
+router.route("/createPaypalOrder").post(authMiddleware, createPaypalOrder);
+router.route("/capturePaypalOrder").post(authMiddleware, capturePaypalOrder);
+router.route("/getPaypalClientId").get(getPaypalClientId);
 router.route("/getBookingChartData").get(authMiddleware, getBookingChartData);
 
 export default router;
