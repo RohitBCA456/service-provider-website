@@ -26,7 +26,7 @@ const Features = () => {
     const fetchBookingStats = async () => {
       try {
         const res = await axios.get(
-          "https://service-provider-roan.vercel.app/api/v1/booking/getBookingStats",
+          "https://service-provider-website.onrender.com/api/v1/booking/getBookingStats",
           {
             withCredentials: true,
           }
@@ -108,7 +108,7 @@ const Features = () => {
   const fetchUnreadRoomsCount = async () => {
     try {
       const res = await axios.get(
-        "https://service-provider-roan.vercel.app/api/v1/auth/getUnreadRoomsCount",
+        "https://service-provider-website.onrender.com/api/v1/auth/getUnreadRoomsCount",
         { withCredentials: true }
       );
       setUnreadCount(res.data.unreadRoomsCount);

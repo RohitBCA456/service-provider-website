@@ -29,14 +29,14 @@ const TableList = () => {
       try {
         // Fetch User Role
         const roleRes = await axios.get(
-          "https://service-provider-roan.vercel.app/api/v1/auth/fetchUserRole",
+          "https://service-provider-website.onrender.com/api/v1/auth/fetchUserRole",
           { withCredentials: true }
         );
         if (roleRes.data.success) setRole(roleRes.data.userRole);
 
         // Fetch Bookings
         const bookingRes = await axios.post(
-          "https://service-provider-roan.vercel.app/api/v1/booking/getBookingStatus",
+          "https://service-provider-website.onrender.com/api/v1/booking/getBookingStatus",
           { status },
           { withCredentials: true }
         );
@@ -44,7 +44,7 @@ const TableList = () => {
 
         // Fetch PayPal Client ID
         const paypalRes = await axios.get(
-          "https://service-provider-roan.vercel.app/api/v1/booking/getPaypalClientId"
+          "https://service-provider-website.onrender.com/api/v1/booking/getPaypalClientId"
         );
         if (paypalRes.data.clientId) setPaypalClientId(paypalRes.data.clientId);
       } catch (error) {
@@ -59,7 +59,7 @@ const TableList = () => {
   const fetchBookings = async () => {
     try {
       const response = await axios.post(
-        "https://service-provider-roan.vercel.app/api/v1/booking/getBookingStatus",
+        "https://service-provider-website.onrender.com/api/v1/booking/getBookingStatus",
         { status },
         { withCredentials: true }
       );
@@ -76,7 +76,7 @@ const TableList = () => {
     setActionLoading((prev) => ({ ...prev, [bookingId]: true }));
     try {
       await axios.put(
-        `https://service-provider-roan.vercel.app/api/v1/booking/updateStatus/${bookingId}`,
+        `https://service-provider-website.onrender.com/api/v1/booking/updateStatus/${bookingId}`,
         {
           status: "accepted",
           timeSlot: { date: selectedDate, time: selectedTime },
@@ -97,7 +97,7 @@ const TableList = () => {
     if (!window.confirm("Mark as complete?")) return;
     try {
       await axios.put(
-        `https://service-provider-roan.vercel.app/api/v1/booking/updateStatus/${bookingId}`,
+        `https://service-provider-website.onrender.com/api/v1/booking/updateStatus/${bookingId}`,
         { status: "completed" },
         { withCredentials: true }
       );
@@ -111,7 +111,7 @@ const TableList = () => {
   const handleRating = async (bookingId, rating) => {
     try {
       await axios.post(
-        "https://service-provider-roan.vercel.app/api/v1/booking/submitRating",
+        "https://service-provider-website.onrender.com/api/v1/booking/submitRating",
         { bookingId, rating },
         { withCredentials: true }
       );
@@ -199,7 +199,7 @@ const TableList = () => {
                             createOrder={async () => {
                               try {
                                 const res = await axios.post(
-                                  "https://service-provider-roan.vercel.app/api/v1/booking/createPaypalOrder",
+                                  "https://service-provider-website.onrender.com/api/v1/booking/createPaypalOrder",
                                   { bookingId: booking.bookingId },
                                   { withCredentials: true }
                                 );
@@ -211,7 +211,7 @@ const TableList = () => {
                             onApprove={async (data) => {
                               try {
                                 const res = await axios.post(
-                                  "https://service-provider-roan.vercel.app/api/v1/booking/capturePaypalOrder",
+                                  "https://service-provider-website.onrender.com/api/v1/booking/capturePaypalOrder",
                                   {
                                     orderID: data.orderID,
                                     bookingId: booking.bookingId,

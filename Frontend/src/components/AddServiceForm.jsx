@@ -44,7 +44,7 @@ export default function AddServiceForm() {
 
     try {
       const response = await fetch(
-        "https://service-provider-roan.vercel.app/api/v1/providers/updateProvider",
+        "https://service-provider-website.onrender.com/api/v1/providers/updateProvider",
         {
           method: "PUT",
           headers: { "Content-Type": "application/json" },

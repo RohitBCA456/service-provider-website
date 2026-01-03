@@ -129,7 +129,7 @@ export default function MarqueeProviderDemo() {
       if (!coords) return;
 
       try {
-        const url = `https://service-provider-roan.vercel.app/api/v1/providers/getAllNearByProviders?lat=${coords.lat}&lng=${coords.lng}&service=${service}`;
+        const url = `https://service-provider-website.onrender.com/api/v1/providers/getAllNearByProviders?lat=${coords.lat}&lng=${coords.lng}&service=${service}`;
         const res = await axios.get(url, {
           withCredentials: true,
         });
