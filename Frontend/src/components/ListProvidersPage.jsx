@@ -41,8 +41,6 @@ const ServiceCard = ({
         )
       : null;
 
-  if (!distance || distance > 20) return null;
-
   const handleNavigate = () => {
     navigate("/Profile", { state: { providerId } });
   };
