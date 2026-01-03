@@ -14,7 +14,7 @@ export const getALLNearByProviders = async (req, res) => {
 
     const customerId = req.user?.id;
     if (!customerId) {
-      return res.status(401).json({ message: "Unauthorized: user ID missing" });
+      return res.status(401).json({ message: "Unauthorized" });
     }
 
     const activeBookings = await Booking.find({
@@ -22,9 +22,9 @@ export const getALLNearByProviders = async (req, res) => {
       status: { $in: ["pending", "accepted"] },
     }).select("providerId");
 
-    const bookedProviderIds = activeBookings
-      .filter((b) => b.providerId)
-      .map((b) => b.providerId.toString());
+    const bookedProviderIds = activeBookings.map(
+      (b) => b.providerId?.toString()
+    );
 
     const query = {
       role: "provider",
@@ -34,7 +34,7 @@ export const getALLNearByProviders = async (req, res) => {
             type: "Point",
             coordinates: [parseFloat(lng), parseFloat(lat)],
           },
-          $maxDistance: 10000,
+          $maxDistance: 20000,
         },
       },
     };
@@ -43,26 +43,24 @@ export const getALLNearByProviders = async (req, res) => {
       query._id = { $nin: bookedProviderIds };
     }
 
-    if (service && service.trim() !== "") {
+    if (service) {
       const servicesArray = service
         .split(",")
-        .map((s) => s.trim().toLowerCase())
-        .filter((s) => s.length > 0);
+        .map((s) => s.trim().toLowerCase());
 
-      if (servicesArray.length > 0) {
+      if (servicesArray.length) {
         query.servicesOffered = { $in: servicesArray };
       }
     }
 
     const providers = await User.find(query);
-    return res.json(providers);
+    res.json(providers);
   } catch (error) {
-    console.error("Error fetching nearby providers:", error);
-    return res.status(500).json({
-      message: "Internal server error while fetching nearby providers.",
-    });
+    console.error("Nearby provider error:", error);
+    res.status(500).json({ message: "Server error" });
   }
 };
+
 
 export const getSingleProvider = async (req, res) => {
   try {
