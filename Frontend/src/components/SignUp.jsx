@@ -57,7 +57,7 @@ function CreateAccount() {
 
     // ✅ Dynamic endpoint based on role
     const url =
-      "https://service-provider-website.onrender.com/api/v1/auth/registerUser";
+      "http://localhost:5000/api/v1/auth/registerUser";
 
     toast
       .promise(

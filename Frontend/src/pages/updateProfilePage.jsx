@@ -38,7 +38,7 @@ export default function UpdateProfile() {
   useEffect(() => {
     const fetchUserData = async () => {
       try {
-        const response = await axios.get("https://service-provider-website.onrender.com/api/v1/auth/getCurrentUser", {
+        const response = await axios.get("http://localhost:5000/api/v1/auth/getCurrentUser", {
           withCredentials: true,
         })
         const data = response.data
@@ -174,8 +174,8 @@ export default function UpdateProfile() {
 
       const endpoint =
         displayData.role === "provider"
-          ? "https://service-provider-website.onrender.com/api/v1/providers/updateProvider"
-          : "https://service-provider-website.onrender.com/api/v1/customers/updateCustomer"
+          ? "http://localhost:5000/api/v1/providers/updateProvider"
+          : "http://localhost:5000/api/v1/customers/updateCustomer"
 
       const response = await fetch(endpoint, {
         method: "PUT",

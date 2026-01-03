@@ -106,7 +106,7 @@ export default function ProviderHome() {
     const fetchChartData = async () => {
       try {
         const res = await axios.get(
-          "https://service-provider-website.onrender.com/api/v1/booking/getBookingChartData",
+          "http://localhost:5000/api/v1/booking/getBookingChartData",
           { withCredentials: true }
         );
         setWeeklyData(res.data.weeklyData || []);
