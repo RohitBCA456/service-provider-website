@@ -9,8 +9,11 @@ const TableList = () => {
   const [data, setData] = useState([]);
   const [loading, setLoading] = useState(true);
   const [editingRow, setEditingRow] = useState(null);
-  const [selectedDate, setSelectedDate] = useState("");
-  const [selectedTime, setSelectedTime] = useState("");
+  const [showModal, setShowModal] = useState(false);
+  const [selectedBookingId, setSelectedBookingId] = useState(null);
+  const [date, setDate] = useState("");
+  const [time, setTime] = useState("");
+
   const [role, setRole] = useState(null);
   const [actionLoading, setActionLoading] = useState({});
   const [paypalClientId, setPaypalClientId] = useState(null);
@@ -71,15 +74,20 @@ const TableList = () => {
 
   // --- Handlers ---
   const handleSave = async (bookingId) => {
-    if (!selectedDate || !selectedTime)
+    if (!date || !time) {
       return toast.error("Provide date and time.");
+    }
+
     setActionLoading((prev) => ({ ...prev, [bookingId]: true }));
     try {
       await axios.put(
         `https://service-provider-website.onrender.com/api/v1/booking/updateStatus/${bookingId}`,
         {
           status: "accepted",
-          timeSlot: { date: selectedDate, time: selectedTime },
+          timeSlot: {
+            date,
+            time,
+          },
         },
         { withCredentials: true }
       );
@@ -88,6 +96,25 @@ const TableList = () => {
       setEditingRow(null);
     } catch (error) {
       toast.error("Failed to accept");
+    } finally {
+      setActionLoading((prev) => ({ ...prev, [bookingId]: false }));
+    }
+  };
+
+  const handleReject = async (bookingId) => {
+    try {
+      await axios.put(
+        `https://service-provider-website.onrender.com/api/v1/booking/updateStatus/${bookingId}`,
+        {
+          status: "rejected",
+        },
+        { withCredentials: true }
+      );
+      toast.success("Rejected");
+      fetchBookings();
+      setEditingRow(null);
+    } catch (error) {
+      toast.error("Failed to reject");
     } finally {
       setActionLoading((prev) => ({ ...prev, [bookingId]: false }));
     }
@@ -122,7 +149,7 @@ const TableList = () => {
     }
   };
 
- if (!paypalClientId) return <Loader />;
+  if (!paypalClientId) return <Loader />;
 
   return (
     <PayPalScriptProvider
@@ -142,13 +169,12 @@ const TableList = () => {
                 <th className="p-3">User</th>
                 <th className="p-3">Service</th>
                 <th className="p-3">TimeSlot</th>
+                <th className="p-3">Date</th>
                 <th className="p-3">Status</th>
                 {role === "customer" && (
                   <th className="p-3">Payment & Rating</th>
                 )}
-                {status === "accepted" && role === "provider" && (
-                  <th className="p-3">Actions</th>
-                )}
+                {role === "provider" && <th className="p-3">Actions</th>}
               </tr>
             </thead>
             <tbody>
@@ -168,7 +194,8 @@ const TableList = () => {
                     </div>
                   </td>
                   <td className="p-3">{(booking.services || []).join(", ")}</td>
-                  <td className="p-3">{booking.timeSlot?.date || "Pending"}</td>
+                  <td className="p-3 text-green-500 italic font-semibold">{booking.timeSlot?.date}</td>
+                  <td className="p-3 text-green-500 italic font-semibold">{booking.timeSlot?.time}</td>
                   <td className="p-3">
                     <span
                       className={`px-2 py-1 rounded-full text-xs capitalize ${
@@ -176,7 +203,11 @@ const TableList = () => {
                           ? "bg-green-500"
                           : booking.status === "completed"
                           ? "bg-blue-500"
-                          : "bg-yellow-500"
+                          : booking.status === "rejected"
+                          ? "bg-red-500"
+                          : booking.status === "pending"
+                          ? "bg-yellow-500"
+                          : "bg-gray-500"
                       }`}
                     >
                       {booking.status}
@@ -245,6 +276,79 @@ const TableList = () => {
                           ))}
                         </div>
                       )}
+                    </td>
+                  )}
+
+                  {booking.status === "pending" && role === "provider" && (
+                    <td className="flex items-center gap-2 p-3">
+                      <button
+                        onClick={() => {
+                          setSelectedBookingId(booking.bookingId);
+                          setShowModal(true);
+                        }}
+                        className="bg-green-500 text-white px-3 py-1 rounded"
+                      >
+                        Accept
+                      </button>
+
+                      {showModal && (
+                        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+                          <div className="bg-yellow-200 p-6 rounded-lg w-80">
+                            <h2 className="text-lg font-semibold mb-4 text-black">
+                              Select Date & Time
+                            </h2>
+
+                            <input
+                              type="date"
+                              value={date}
+                              onChange={(e) => setDate(e.target.value)}
+                              className="w-full border p-2 rounded mb-3 text-black"
+                            />
+
+                            <input
+                              type="time"
+                              value={time}
+                              onChange={(e) => setTime(e.target.value)}
+                              className="w-full border p-2 rounded mb-4 text-black"
+                            />
+
+                            <div className="flex justify-between">
+                              <button
+                                onClick={() => setShowModal(false)}
+                                className="px-4 py-1 rounded bg-red-500 text-white"
+                              >
+                                Cancel
+                              </button>
+
+                              <button
+                                onClick={() => {
+                                  if (!date || !time) {
+                                    alert("Please select date and time");
+                                    return;
+                                  }
+                                  handleSave(
+                                    selectedBookingId,
+                                    `${date} ${time}`
+                                  );
+                                  setShowModal(false);
+                                  setDate("");
+                                  setTime("");
+                                }}
+                                className="px-4 py-1 bg-green-500 text-white rounded"
+                              >
+                                Confirm
+                              </button>
+                            </div>
+                          </div>
+                        </div>
+                      )}
+
+                      <button
+                        onClick={() => handleReject(booking.bookingId)}
+                        className="bg-red-500 text-white px-3 py-1 rounded"
+                      >
+                        Reject
+                      </button>
                     </td>
                   )}
 
