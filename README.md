@@ -4,13 +4,6 @@ A full-stack web application that connects **customers** with **service provider
 
 ---
 
-## 🔗 Live Links
-
-- **Frontend:** [Coming Soon]
-- **Backend:** [Coming Soon]
-
----
-
 ## 🚀 Features
 
 ### 👤 Authentication
@@ -25,8 +18,12 @@ A full-stack web application that connects **customers** with **service provider
 - Customers can send service requests
 - Providers receive and manage booking requests
 
-### 💬 Real-time Chat (Upcoming)
+### 💬 Real-time Chat
 - Instant messaging between customer and provider using Socket.IO
+
+### 💳 Payment Integration
+- Secure checkout using **PayPal**
+- Automated transaction handling and payment confirmation
 
 ### ⚙️ Admin Panel (Upcoming)
 - Manage users and service data
@@ -38,12 +35,14 @@ A full-stack web application that connects **customers** with **service provider
 ### 💻 Frontend
 - React.js (Vite)
 - TailwindCSS for styling
+- PayPal JS SDK
 
 ### 🌐 Backend
 - Node.js & Express.js
 - MongoDB & Mongoose
 - Socket.IO (for chat)
 - Cloudinary (for image uploads)
+- PayPal Checkout SDK
 
 ### 🔐 Authentication
 - JSON Web Tokens (JWT)
@@ -73,6 +72,8 @@ JWT_SECRET=your_jwt_secret
 CLOUD_NAME=your_cloudinary_name
 API_KEY=your_cloudinary_api_key
 API_SECRET=your_cloudinary_api_secret
+PAYPAL_CLIENT_ID=your_paypal_client_id
+PAYPAL_APP_SECRET=your_paypal_app_secret
 ```
 
 Then start the backend:
@@ -101,6 +102,11 @@ npm run dev
 - `PUT /updateCustomer` – update profile
 - `PUT /updateProvider` – update profile
 - `GET /getAllProviders` – customer browsing
+
+### Payment & Bookings
+- `POST /getPaypalClientId` – initialize PayPal order
+- `POST /capturePaypalOrder` – finalize transaction
+- `POST /createPaypalOrder` – book a service provider
 
 More coming soon...
 
@@ -136,3 +142,4 @@ service-provider-website/
 🔗 [GitHub](https://github.com/RohitBCA456)
 
 ---
+
