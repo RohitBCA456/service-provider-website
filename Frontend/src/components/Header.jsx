@@ -36,7 +36,7 @@ const ServiceFinderHeader = ({ theme, setTheme }) => {
     toast
       .promise(
         axios.get(
-          "http://localhost:5000/api/v1/providers/logoutProvider",
+          "https://service-provider-website.onrender.com/api/v1/providers/logoutProvider",
           {
             withCredentials: true,
           }
@@ -68,7 +68,7 @@ const ServiceFinderHeader = ({ theme, setTheme }) => {
         toast.promise(
           (async () => {
             const res = await axios.get(
-              "http://localhost:5000/api/v1/providers/getAllNearByProviders",
+              "https://service-provider-website.onrender.com/api/v1/providers/getAllNearByProviders",
               {
                 params: {
                   lat,
