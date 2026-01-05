@@ -241,15 +241,22 @@ export const createPaypalOrder = async (req, res) => {
 
     let totalAmount = 0;
 
-    // Use parallel array logic based on your User Model
     if (provider.servicesOffered && provider.Pricing) {
       booking.serviceName.forEach((bookedService) => {
-        // 1. Find the index of the service in the provider's list (case-insensitive)
+
         const serviceIndex = provider.servicesOffered.findIndex(
           (s) => s?.trim().toLowerCase() === bookedService?.trim().toLowerCase()
         );
 
-        // 2. If found, get the price at the SAME index from the Pricing array
+        const inrToUsd = parseFloat(process.env.INR_TO_USD_RATE) || 0.012;
+
+        if (serviceIndex !== -1 && provider.Pricing[serviceIndex]) {
+
+          provider.Pricing[serviceIndex] = parseFloat(
+            (provider.Pricing[serviceIndex] * inrToUsd).toFixed(2)
+          );
+        }
+
         if (serviceIndex !== -1 && provider.Pricing[serviceIndex]) {
           totalAmount += provider.Pricing[serviceIndex];
         } else {

@@ -194,8 +194,8 @@ const TableList = () => {
                     </div>
                   </td>
                   <td className="p-3">{(booking.services || []).join(", ")}</td>
-                  <td className="p-3 text-green-500 italic font-semibold">{booking.timeSlot?.date}</td>
-                  <td className="p-3 text-green-500 italic font-semibold">{booking.timeSlot?.time}</td>
+                  <td className={(booking.timeSlot?.date ? "p-3 text-green-500 italic font-semibold" :"p-3 text-red-500 italic font-semibold")}>{booking.timeSlot?.date || "Not assigned"}</td>
+                  <td className={(booking.timeSlot?.time ? "p-3 text-green-500 italic font-semibold" :"p-3 text-red-500 italic font-semibold")}>{booking.timeSlot?.time || "Not assigned"}</td>
                   <td className="p-3">
                     <span
                       className={`px-2 py-1 rounded-full text-xs capitalize ${
@@ -206,7 +206,7 @@ const TableList = () => {
                           : booking.status === "rejected"
                           ? "bg-red-500"
                           : booking.status === "pending"
-                          ? "bg-yellow-500"
+                          ? "bg-yellow-400"
                           : "bg-gray-500"
                       }`}
                     >
@@ -357,7 +357,7 @@ const TableList = () => {
                     <td className="p-3">
                       <button
                         onClick={() => handleComplete(booking.bookingId)}
-                        className="bg-green-500 text-white px-3 py-1 rounded"
+                        className="bg-blue-500 text-white px-2 py-1 rounded"
                       >
                         Complete
                       </button>

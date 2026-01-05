@@ -36,6 +36,12 @@ const ProviderProfile = () => {
   }, [providerId]);
 
   const handleBooking = async (providerId, selectedService) => {
+
+    if(provider.servicesOffered.indexOf(selectedService) === -1){
+      toast.error("Selected service is not offered by the provider.");
+      return;
+    }
+
     const servicesArray = selectedService
       .split(",")
       .map((s) => s.trim())
