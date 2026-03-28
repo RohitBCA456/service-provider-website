@@ -14,7 +14,7 @@ const StackListActionMenu = () => {
   const fetchRole = async () => {
     try {
       const res = await axios.get(
-        "http://localhost:5000/api/v1/auth/fetchUserRole",
+        "https://service-provider-website.onrender.com/api/v1/auth/fetchUserRole",
         {
           withCredentials: true,
         }
@@ -28,7 +28,7 @@ const StackListActionMenu = () => {
   const fetchBookings = async () => {
     try {
       const res = await axios.post(
-        "http://localhost:5000/api/v1/booking/getBookingStatus",
+        "https://service-provider-website.onrender.com/api/v1/booking/getBookingStatus",
         {},
         { withCredentials: true }
       );

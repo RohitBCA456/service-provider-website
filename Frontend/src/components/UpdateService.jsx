@@ -23,7 +23,7 @@ const UserServices = () => {
     const fetchCurrentUser = async () => {
       try {
         const res = await axios.get(
-          "http://localhost:5000/api/v1/auth/getCurrentUser",
+          "https://service-provider-website.onrender.com/api/v1/auth/getCurrentUser",
           { withCredentials: true }
         );
         const fetchedUser = res.data.user;
@@ -41,7 +41,7 @@ const UserServices = () => {
     setIsDeletingIndex(index);
     try {
       await axios.delete(
-        "http://localhost:5000/api/v1/providers/deleteServicePairs",
+        "https://service-provider-website.onrender.com/api/v1/providers/deleteServicePairs",
         {
           data: { index },
           withCredentials: true,
@@ -72,7 +72,7 @@ const UserServices = () => {
     setIsEditingIndex(editIndex);
     try {
       await axios.put(
-        "http://localhost:5000/api/v1/providers/updateServicePairs",
+        "https://service-provider-website.onrender.com/api/v1/providers/updateServicePairs",
         {
           index: editIndex,
           service: editService,
@@ -105,7 +105,7 @@ const UserServices = () => {
     setIsAdding(true);
     try {
       await axios.put(
-        "http://localhost:5000/api/v1/providers/updateProvider",
+        "https://service-provider-website.onrender.com/api/v1/providers/updateProvider",
         {
           name: user.name,
           servicesOffered: newService,
