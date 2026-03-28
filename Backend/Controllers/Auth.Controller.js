@@ -1,7 +1,7 @@
 import { User } from "../Models/User.Model.js";
 import { Message } from "../Models/Message.Model.js";
 import { uploadOnCloudinary } from "../utilities/Cloudinary.utilities.js";
-import nodemailer from "nodemailer";
+import { Resend } from "resend";
 
 export const registerUser = async (req, res) => {
   try {
@@ -213,6 +213,8 @@ export const markMessagesAsRead = async (req, res) => {
   }
 };
 
+const resend = new Resend(process.env.RESEND_API_KEY);
+
 export const sendContactMail = async (req, res) => {
   try {
     const { name, email, message } = req.body;
@@ -220,32 +222,27 @@ export const sendContactMail = async (req, res) => {
     if (!name || !email || !message)
       return res.status(400).json({ message: "All fields are required" });
 
-    console.log(process.env.MAIL_USER, process.env.MAIL_PASS)
-
-    const transporter = nodemailer.createTransport({
-      service: "gmail", // or use host, port, etc. for other services
-      auth: {
-        user: process.env.MAIL_USER, // e.g. your-email@gmail.com
-        pass: process.env.MAIL_PASS, // app password (not your Gmail password!)
-      },
-    });
-
-    const mailOptions = {
-      from: `"${name}" <${email}>`,
-      to: "youremail@example.com", // replace with your email
-      subject: "New Message from Service Finder Contact Form",
+    const { error } = await resend.emails.send({
+      from: "Contact Form <onboarding@resend.dev>",
+      replyTo: email,                                
+      to: process.env.MAIL_RECEIVER,                
+      subject: `New Message from ${name} - Service Finder`,
       html: `
         <h3>Contact Details</h3>
         <p><strong>Name:</strong> ${name}</p>
         <p><strong>Email:</strong> ${email}</p>
         <p><strong>Message:</strong> ${message}</p>
       `,
-    };
+    });
 
-    await transporter.sendMail(mailOptions);
+    if (error) {
+      console.error("Resend Error:", error);
+      return res.status(500).json({ message: "Failed to send message" });
+    }
+
     return res.status(200).json({ message: "Message sent successfully!" });
   } catch (err) {
-    console.error("Nodemailer Error:", err);
+    console.error("Mail Error:", err);
     return res.status(500).json({ message: "Failed to send message" });
   }
 };
