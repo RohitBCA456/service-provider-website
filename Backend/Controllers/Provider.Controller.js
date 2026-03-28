@@ -22,8 +22,8 @@ export const getALLNearByProviders = async (req, res) => {
       status: { $in: ["pending", "accepted"] },
     }).select("providerId");
 
-    const bookedProviderIds = activeBookings.map(
-      (b) => b.providerId?.toString()
+    const bookedProviderIds = activeBookings.map((b) =>
+      b.providerId?.toString(),
     );
 
     const query = {
@@ -61,7 +61,6 @@ export const getALLNearByProviders = async (req, res) => {
   }
 };
 
-
 export const getSingleProvider = async (req, res) => {
   try {
     const provider = await User.findById(req.params.providerId);
@@ -82,10 +81,18 @@ export const getSingleProvider = async (req, res) => {
 
 export const updateProviderProfile = async (req, res) => {
   try {
-    const { name, servicesOffered, latitude, longitude, address, pricing } = req.body;
+    const {
+      name,
+      servicesOffered,
+      latitude,
+      longitude,
+      address,
+      pricing,
+      paypalEmail,
+    } = req.body;
     const avatar = req.file?.path;
 
-    console.log(avatar)
+    console.log(avatar);
 
     const provider = await User.findById(req.user?.id);
     if (!provider || provider.role !== "provider") {
@@ -96,6 +103,8 @@ export const updateProviderProfile = async (req, res) => {
       const uploadResponse = await uploadOnCloudinary(avatar);
       provider.avatar = uploadResponse.secure_url;
     }
+
+    if (paypalEmail) provider.paypalEmail = paypalEmail;
 
     if (name) provider.name = name;
 
@@ -128,7 +137,6 @@ export const updateProviderProfile = async (req, res) => {
   }
 };
 
-
 export const logoutProvider = async (req, res) => {
   try {
     const userId = req.user?.id;
@@ -142,7 +150,7 @@ export const logoutProvider = async (req, res) => {
       },
       {
         new: true,
-      }
+      },
     );
 
     if (!provider) {

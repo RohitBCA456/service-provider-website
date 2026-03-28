@@ -66,7 +66,7 @@ const Features = () => {
       toast.loading("Finding nearby providers...");
 
       try {
-        const res = await axios.get("https://service-provider-website.onrender.com/api/v1/providers/getAllNearByProviders", {
+        const res = await axios.get("http://localhost:5000/api/v1/providers/getAllNearByProviders", {
           params: { lat, lng, service },
           withCredentials: true,
         });

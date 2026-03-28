@@ -26,7 +26,7 @@ const Features = () => {
     const fetchBookingStats = async () => {
       try {
         const res = await axios.get(
-          "https://service-provider-website.onrender.com/api/v1/booking/getBookingStats",
+          "http://localhost:5000/api/v1/booking/getBookingStats",
           {
             withCredentials: true,
           }
@@ -108,7 +108,7 @@ const Features = () => {
   const fetchUnreadRoomsCount = async () => {
     try {
       const res = await axios.get(
-        "https://service-provider-website.onrender.com/api/v1/auth/getUnreadRoomsCount",
+        "http://localhost:5000/api/v1/auth/getUnreadRoomsCount",
         { withCredentials: true }
       );
       setUnreadCount(res.data.unreadRoomsCount);

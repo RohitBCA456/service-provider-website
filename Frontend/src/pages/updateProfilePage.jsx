@@ -1,7 +1,7 @@
-"use client"
-import axios from "axios"
-import { useState, useEffect } from "react"
-import Loader from "../components/Loader"
+"use client";
+import axios from "axios";
+import { useState, useEffect } from "react";
+import Loader from "../components/Loader";
 
 export default function UpdateProfile() {
   // Data for form submission (only editable fields)
@@ -13,7 +13,8 @@ export default function UpdateProfile() {
       longitude: "",
     },
     avatar: null,
-  })
+    paypalEmail: "",
+  });
 
   // Data for display only (read-only fields)
   const [displayData, setDisplayData] = useState({
@@ -21,28 +22,31 @@ export default function UpdateProfile() {
     role: "",
     servicesOffered: "",
     pricing: "",
-  })
+  });
 
-  const [isLoading, setIsLoading] = useState(true)
-  const [isSubmitting, setIsSubmitting] = useState(false)
-  const [isUpdatingLocation, setIsUpdatingLocation] = useState(false)
-  const [toast, setToast] = useState(null)
-  const [avatarPreview, setAvatarPreview] = useState(null)
+  const [isLoading, setIsLoading] = useState(true);
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [isUpdatingLocation, setIsUpdatingLocation] = useState(false);
+  const [toast, setToast] = useState(null);
+  const [avatarPreview, setAvatarPreview] = useState(null);
 
   const showToast = (message, type = "success") => {
-    setToast({ message, type })
-    setTimeout(() => setToast(null), 3000)
-  }
+    setToast({ message, type });
+    setTimeout(() => setToast(null), 3000);
+  };
 
   // Fetch current user data
   useEffect(() => {
     const fetchUserData = async () => {
       try {
-        const response = await axios.get("https://service-provider-website.onrender.com/api/v1/auth/getCurrentUser", {
-          withCredentials: true,
-        })
-        const data = response.data
-        const user = data.user || data
+        const response = await axios.get(
+          "http://localhost:5000/api/v1/auth/getCurrentUser",
+          {
+            withCredentials: true,
+          },
+        );
+        const data = response.data;
+        const user = data.user || data;
 
         // Set form data (only editable fields)
         setFormData({
@@ -53,7 +57,8 @@ export default function UpdateProfile() {
             longitude: user.location?.coordinates?.[0] || "",
           },
           avatar: null,
-        })
+         paypalEmail: user.paypalEmail || ""
+        });
 
         // Set display data (read-only fields)
         setDisplayData({
@@ -61,28 +66,28 @@ export default function UpdateProfile() {
           role: user.role || "",
           servicesOffered: user.servicesOffered?.join(", ") || "",
           pricing: user.Pricing?.join(", ") || "",
-        })
+        });
 
         if (user.avatar) {
-          setAvatarPreview(user.avatar)
+          setAvatarPreview(user.avatar);
         }
       } catch (error) {
-        console.error("Error fetching user data:", error)
-        showToast("Failed to load user data", "error")
+        console.error("Error fetching user data:", error);
+        showToast("Failed to load user data", "error");
       } finally {
-        setIsLoading(false)
+        setIsLoading(false);
       }
-    }
+    };
 
-    fetchUserData()
-  }, [])
+    fetchUserData();
+  }, []);
 
   const handleInputChange = (field, value) => {
     setFormData((prev) => ({
       ...prev,
       [field]: value,
-    }))
-  }
+    }));
+  };
 
   const handleCoordinateChange = (field, value) => {
     setFormData((prev) => ({
@@ -91,118 +96,123 @@ export default function UpdateProfile() {
         ...prev.coordinates,
         [field]: value,
       },
-    }))
-  }
+    }));
+  };
 
   const handleAvatarChange = (e) => {
-    const file = e.target.files[0]
+    const file = e.target.files[0];
     if (file) {
       setFormData((prev) => ({
         ...prev,
         avatar: file,
-      }))
+      }));
       // Create preview
-      const reader = new FileReader()
+      const reader = new FileReader();
       reader.onloadend = () => {
-        setAvatarPreview(reader.result)
-      }
-      reader.readAsDataURL(file)
+        setAvatarPreview(reader.result);
+      };
+      reader.readAsDataURL(file);
     }
-  }
+  };
 
   const handleLocationUpdate = async () => {
-    setIsUpdatingLocation(true)
+    setIsUpdatingLocation(true);
     try {
       if (navigator.geolocation) {
         navigator.geolocation.getCurrentPosition(
           (position) => {
-            const { latitude, longitude } = position.coords
+            const { latitude, longitude } = position.coords;
             setFormData((prev) => ({
               ...prev,
               coordinates: {
                 latitude: latitude.toFixed(6),
                 longitude: longitude.toFixed(6),
               },
-            }))
-            showToast("Location updated successfully!")
-            setIsUpdatingLocation(false)
+            }));
+            showToast("Location updated successfully!");
+            setIsUpdatingLocation(false);
           },
           (error) => {
-            console.error("Geolocation error:", error)
+            console.error("Geolocation error:", error);
             // Fallback to mock coordinates
             const mockCoordinates = {
               latitude: (Math.random() * 180 - 90).toFixed(6),
               longitude: (Math.random() * 360 - 180).toFixed(6),
-            }
+            };
             setFormData((prev) => ({
               ...prev,
               coordinates: mockCoordinates,
-            }))
-            showToast("Location updated with mock data!")
-            setIsUpdatingLocation(false)
+            }));
+            showToast("Location updated with mock data!");
+            setIsUpdatingLocation(false);
           },
-        )
+        );
       } else {
-        throw new Error("Geolocation not supported")
+        throw new Error("Geolocation not supported");
       }
     } catch (error) {
-      showToast("Failed to update location. Please try again.", "error")
-      setIsUpdatingLocation(false)
+      showToast("Failed to update location. Please try again.", "error");
+      setIsUpdatingLocation(false);
     }
-  }
+  };
 
   const handleSubmit = async (e) => {
-    e.preventDefault()
+    e.preventDefault();
     if (!formData.name || !formData.address) {
-      showToast("Please fill in all required fields.", "error")
-      return
+      showToast("Please fill in all required fields.", "error");
+      return;
     }
 
-    setIsSubmitting(true)
+    setIsSubmitting(true);
     try {
-      const formDataToSend = new FormData()
+      const formDataToSend = new FormData();
 
       // Only send editable fields
-      formDataToSend.append("name", formData.name)
-      formDataToSend.append("address", formData.address)
-      formDataToSend.append("latitude", formData.coordinates.latitude)
-      formDataToSend.append("longitude", formData.coordinates.longitude)
+      formDataToSend.append("name", formData.name);
+      formDataToSend.append("address", formData.address);
+      formDataToSend.append("latitude", formData.coordinates.latitude);
+      formDataToSend.append("longitude", formData.coordinates.longitude);
 
       if (formData.avatar) {
-        formDataToSend.append("avatar", formData.avatar)
+        formDataToSend.append("avatar", formData.avatar);
+      }
+
+      if (formData.paypalEmail) {
+        formDataToSend.append("paypalEmail", formData.paypalEmail);
       }
 
       const endpoint =
         displayData.role === "provider"
-          ? "https://service-provider-website.onrender.com/api/v1/providers/updateProvider"
-          : "https://service-provider-website.onrender.com/api/v1/customers/updateCustomer"
+          ? "http://localhost:5000/api/v1/providers/updateProvider"
+          : "http://localhost:5000/api/v1/customers/updateCustomer";
 
       const response = await fetch(endpoint, {
         method: "PUT",
         credentials: "include",
         body: formDataToSend,
-      })
+      });
 
       if (!response.ok) {
-        const errorData = await response.json()
-        throw new Error(errorData.error || "Failed to update profile")
+        const errorData = await response.json();
+        throw new Error(errorData.error || "Failed to update profile");
       }
 
-      const data = await response.json()
-      console.log("Profile updated:", data)
-      showToast("Profile updated successfully!")
+      const data = await response.json();
+      console.log("Profile updated:", data);
+      showToast("Profile updated successfully!");
     } catch (error) {
-      console.error("Error updating profile:", error)
-      showToast(error.message || "Failed to update profile. Please try again.", "error")
+      console.error("Error updating profile:", error);
+      showToast(
+        error.message || "Failed to update profile. Please try again.",
+        "error",
+      );
     } finally {
-      setIsSubmitting(false)
+      setIsSubmitting(false);
     }
-  }
+  };
 
   if (isLoading) {
-    return (
-      <Loader />
-    )
+    return <Loader />;
   }
 
   return (
@@ -212,7 +222,12 @@ export default function UpdateProfile() {
         <div className="bg-white rounded-lg shadow-sm border border-gray-200 mb-6">
           <div className="px-6 py-4 border-b border-gray-200">
             <h1 className="text-2xl font-semibold text-gray-900 flex items-center gap-2">
-              <svg className="h-6 w-6 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <svg
+                className="h-6 w-6 text-blue-600"
+                fill="none"
+                stroke="currentColor"
+                viewBox="0 0 24 24"
+              >
                 <path
                   strokeLinecap="round"
                   strokeLinejoin="round"
@@ -222,7 +237,9 @@ export default function UpdateProfile() {
               </svg>
               Update Profile
             </h1>
-            <p className="text-sm text-gray-600 mt-1">Manage your account information and preferences</p>
+            <p className="text-sm text-gray-600 mt-1">
+              Manage your account information and preferences
+            </p>
           </div>
         </div>
 
@@ -231,7 +248,9 @@ export default function UpdateProfile() {
           <form onSubmit={handleSubmit} className="p-6 space-y-6">
             {/* Avatar Upload */}
             <div className="space-y-2">
-              <label className="block text-sm font-medium text-gray-700">Profile Picture</label>
+              <label className="block text-sm font-medium text-gray-700">
+                Profile Picture
+              </label>
               <div className="flex items-center gap-4">
                 <div className="h-20 w-20 rounded-full overflow-hidden bg-gray-100 border-2 border-gray-200">
                   {avatarPreview ? (
@@ -242,7 +261,12 @@ export default function UpdateProfile() {
                     />
                   ) : (
                     <div className="h-full w-full flex items-center justify-center">
-                      <svg className="h-8 w-8 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <svg
+                        className="h-8 w-8 text-gray-400"
+                        fill="none"
+                        stroke="currentColor"
+                        viewBox="0 0 24 24"
+                      >
                         <path
                           strokeLinecap="round"
                           strokeLinejoin="round"
@@ -254,12 +278,23 @@ export default function UpdateProfile() {
                   )}
                 </div>
                 <div>
-                  <input type="file" id="avatar" accept="image/*" onChange={handleAvatarChange} className="hidden" />
+                  <input
+                    type="file"
+                    id="avatar"
+                    accept="image/*"
+                    onChange={handleAvatarChange}
+                    className="hidden"
+                  />
                   <label
                     htmlFor="avatar"
                     className="inline-flex items-center gap-2 px-4 py-2 bg-gray-100 text-gray-700 text-sm font-medium rounded-md hover:bg-gray-200 cursor-pointer transition-colors"
                   >
-                    <svg className="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <svg
+                      className="h-4 w-4"
+                      fill="none"
+                      stroke="currentColor"
+                      viewBox="0 0 24 24"
+                    >
                       <path
                         strokeLinecap="round"
                         strokeLinejoin="round"
@@ -273,9 +308,47 @@ export default function UpdateProfile() {
               </div>
             </div>
 
+            {/* PayPal Email Field */}
+            <div className="space-y-2">
+              <label
+                htmlFor="paypalEmail"
+                className="block text-sm font-medium text-gray-700"
+              >
+                PayPal Payout Email {displayData.role === "provider" && "*"}
+              </label>
+              <div className="relative">
+                <input
+                  type="email"
+                  id="paypalEmail"
+                  value={formData.paypalEmail}
+                  onChange={(e) =>
+                    handleInputChange("paypalEmail", e.target.value)
+                  }
+                  className="w-full pl-10 pr-3 py-2 border text-gray-600 border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-colors"
+                  placeholder="email@example.com"
+                  required={displayData.role === "provider"}
+                />
+                <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                  <svg
+                    className="h-5 w-5 text-gray-400"
+                    viewBox="0 0 24 24"
+                    fill="currentColor"
+                  >
+                    <path d="M20.007 21.003c-3.72 0-6.736-3.016-6.736-6.736s3.016-6.736 6.736-6.736c3.72 0 6.736 3.016 6.736 6.736s-3.016 6.736-6.736 6.736zm0-11.472c-2.611 0-4.736 2.125-4.736 4.736s2.125 4.736 4.736 4.736c2.611 0 4.736-2.125 4.736-4.736s-2.125-4.736-4.736-4.736zM11.534 10.511c-.534 0-1.068.204-1.476.612l-7.446 7.446c-.816.816-.816 2.136 0 2.952.408.408.942.612 1.476.612s1.068-.204 1.476-.612l7.446-7.446c.816-.816.816-2.136 0-2.952-.408-.408-.942-.612-1.476-.612z" />
+                  </svg>
+                </div>
+              </div>
+              <p className="text-xs text-gray-500">
+                This is where you will receive payments for completed bookings.
+              </p>
+            </div>
+
             {/* Name Field */}
             <div className="space-y-2">
-              <label htmlFor="name" className="block text-sm font-medium text-gray-700">
+              <label
+                htmlFor="name"
+                className="block text-sm font-medium text-gray-700"
+              >
                 Full Name *
               </label>
               <input
@@ -291,7 +364,10 @@ export default function UpdateProfile() {
 
             {/* Email Field (Read-only) */}
             <div className="space-y-2">
-              <label htmlFor="email" className="block text-sm font-medium text-gray-700">
+              <label
+                htmlFor="email"
+                className="block text-sm font-medium text-gray-700"
+              >
                 Email Address
               </label>
               <input
@@ -307,10 +383,17 @@ export default function UpdateProfile() {
 
             {/* Role Display */}
             <div className="space-y-2">
-              <label className="block text-sm font-medium text-gray-700">Account Type</label>
+              <label className="block text-sm font-medium text-gray-700">
+                Account Type
+              </label>
               <div className="p-4 border-2 border-blue-200 bg-blue-50 rounded-lg">
                 <div className="flex items-center gap-3">
-                  <svg className="h-5 w-5 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <svg
+                    className="h-5 w-5 text-blue-600"
+                    fill="none"
+                    stroke="currentColor"
+                    viewBox="0 0 24 24"
+                  >
                     <path
                       strokeLinecap="round"
                       strokeLinejoin="round"
@@ -323,9 +406,13 @@ export default function UpdateProfile() {
                     />
                   </svg>
                   <div>
-                    <div className="font-medium text-blue-700 capitalize">{displayData.role}</div>
+                    <div className="font-medium text-blue-700 capitalize">
+                      {displayData.role}
+                    </div>
                     <div className="text-sm text-blue-600">
-                      {displayData.role === "provider" ? "Offering services" : "Looking for services"}
+                      {displayData.role === "provider"
+                        ? "Offering services"
+                        : "Looking for services"}
                     </div>
                   </div>
                 </div>
@@ -336,26 +423,37 @@ export default function UpdateProfile() {
             {displayData.role === "provider" && (
               <>
                 <div className="space-y-2">
-                  <label className="block text-sm font-medium text-gray-700">Services Offered</label>
+                  <label className="block text-sm font-medium text-gray-700">
+                    Services Offered
+                  </label>
                   <div className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm bg-gray-50 text-gray-500 min-h-[40px] flex items-center">
                     {displayData.servicesOffered || "No services specified"}
                   </div>
-                  <p className="text-xs text-gray-500">Services cannot be edited from this page</p>
+                  <p className="text-xs text-gray-500">
+                    Services cannot be edited from this page
+                  </p>
                 </div>
 
                 <div className="space-y-2">
-                  <label className="block text-sm font-medium text-gray-700">Pricing</label>
+                  <label className="block text-sm font-medium text-gray-700">
+                    Pricing
+                  </label>
                   <div className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm bg-gray-50 text-gray-500 min-h-[40px] flex items-center">
                     {displayData.pricing || "No pricing specified"}
                   </div>
-                  <p className="text-xs text-gray-500">Pricing cannot be edited from this page</p>
+                  <p className="text-xs text-gray-500">
+                    Pricing cannot be edited from this page
+                  </p>
                 </div>
               </>
             )}
 
             {/* Address Field */}
             <div className="space-y-2">
-              <label htmlFor="address" className="block text-sm font-medium text-gray-700">
+              <label
+                htmlFor="address"
+                className="block text-sm font-medium text-gray-700"
+              >
                 Address *
               </label>
               <textarea
@@ -371,7 +469,9 @@ export default function UpdateProfile() {
 
             {/* Location Coordinates */}
             <div className="space-y-3">
-              <label className="block text-sm font-medium text-gray-700">Location Coordinates</label>
+              <label className="block text-sm font-medium text-gray-700">
+                Location Coordinates
+              </label>
               <div className="bg-gray-50 rounded-lg p-4 border border-gray-200">
                 <div className="grid grid-cols-2 gap-4 mb-4">
                   <div>
@@ -382,7 +482,9 @@ export default function UpdateProfile() {
                       type="number"
                       step="any"
                       value={formData.coordinates.latitude}
-                      onChange={(e) => handleCoordinateChange("latitude", e.target.value)}
+                      onChange={(e) =>
+                        handleCoordinateChange("latitude", e.target.value)
+                      }
                       className="w-full px-2 text-gray-600 py-1 text-sm border border-gray-300 rounded font-mono focus:outline-none focus:ring-1 focus:ring-blue-500"
                       placeholder="0.000000"
                     />
@@ -395,7 +497,9 @@ export default function UpdateProfile() {
                       type="number"
                       step="any"
                       value={formData.coordinates.longitude}
-                      onChange={(e) => handleCoordinateChange("longitude", e.target.value)}
+                      onChange={(e) =>
+                        handleCoordinateChange("longitude", e.target.value)
+                      }
                       className="w-full text-gray-600 px-2 py-1 text-sm border border-gray-300 rounded font-mono focus:outline-none focus:ring-1 focus:ring-blue-500"
                       placeholder="0.000000"
                     />
@@ -409,7 +513,11 @@ export default function UpdateProfile() {
                 >
                   {isUpdatingLocation ? (
                     <>
-                      <svg className="animate-spin h-4 w-4" fill="none" viewBox="0 0 24 24">
+                      <svg
+                        className="animate-spin h-4 w-4"
+                        fill="none"
+                        viewBox="0 0 24 24"
+                      >
                         <circle
                           className="opacity-25"
                           cx="12"
@@ -428,7 +536,12 @@ export default function UpdateProfile() {
                     </>
                   ) : (
                     <>
-                      <svg className="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <svg
+                        className="h-4 w-4"
+                        fill="none"
+                        stroke="currentColor"
+                        viewBox="0 0 24 24"
+                      >
                         <path
                           strokeLinecap="round"
                           strokeLinejoin="round"
@@ -458,7 +571,11 @@ export default function UpdateProfile() {
               >
                 {isSubmitting ? (
                   <>
-                    <svg className="animate-spin h-4 w-4" fill="none" viewBox="0 0 24 24">
+                    <svg
+                      className="animate-spin h-4 w-4"
+                      fill="none"
+                      viewBox="0 0 24 24"
+                    >
                       <circle
                         className="opacity-25"
                         cx="12"
@@ -477,8 +594,18 @@ export default function UpdateProfile() {
                   </>
                 ) : (
                   <>
-                    <svg className="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                    <svg
+                      className="h-4 w-4"
+                      fill="none"
+                      stroke="currentColor"
+                      viewBox="0 0 24 24"
+                    >
+                      <path
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        strokeWidth={2}
+                        d="M5 13l4 4L19 7"
+                      />
                     </svg>
                     Update Profile
                   </>
@@ -494,12 +621,19 @@ export default function UpdateProfile() {
         <div className="fixed top-4 right-4 z-50 max-w-sm">
           <div
             className={`p-4 rounded-md shadow-lg ${
-              toast.type === "error" ? "bg-red-500 text-white" : "bg-green-500 text-white"
+              toast.type === "error"
+                ? "bg-red-500 text-white"
+                : "bg-green-500 text-white"
             }`}
           >
             <div className="flex items-center gap-2">
               {toast.type === "error" ? (
-                <svg className="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <svg
+                  className="h-5 w-5"
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24"
+                >
                   <path
                     strokeLinecap="round"
                     strokeLinejoin="round"
@@ -508,8 +642,18 @@ export default function UpdateProfile() {
                   />
                 </svg>
               ) : (
-                <svg className="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                <svg
+                  className="h-5 w-5"
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2}
+                    d="M5 13l4 4L19 7"
+                  />
                 </svg>
               )}
               <span className="font-medium">{toast.message}</span>
@@ -518,5 +662,5 @@ export default function UpdateProfile() {
         </div>
       )}
     </div>
-  )
+  );
 }

@@ -72,12 +72,12 @@ export const getBookingStatus = async (req, res) => {
     const bookings = await Booking.find(filter).lean();
 
     const userIdsToFetch = bookings.map((b) =>
-      role === "customer" ? b.providerId : b.customerId
+      role === "customer" ? b.providerId : b.customerId,
     );
 
     const users = await User.find(
       { _id: { $in: userIdsToFetch } },
-      "avatar email name"
+      "avatar email name",
     ).lean();
 
     const userMap = {};
@@ -85,7 +85,6 @@ export const getBookingStatus = async (req, res) => {
       userMap[user._id.toString()] = user;
     });
 
-    // Collect all roomIds to batch query unread counts
     const roomQueries = bookings.map((b) => {
       const targetId = role === "customer" ? b.providerId : b.customerId;
       const sortedIds = [userId, targetId.toString()].sort();
@@ -95,15 +94,14 @@ export const getBookingStatus = async (req, res) => {
       };
     });
 
-    // Fetch unread counts for all rooms in batch
     const unreadCounts = await Promise.all(
       roomQueries.map(({ roomId, receiverId }) =>
         Message.countDocuments({
           roomId,
           receiverId,
           isRead: false,
-        })
-      )
+        }),
+      ),
     );
 
     const formatted = bookings.map((booking, index) => {
@@ -120,7 +118,7 @@ export const getBookingStatus = async (req, res) => {
         rating: booking.rating || null,
         paid: booking.paid || false,
         payment: booking.payment || null,
-        unreadCount: unreadCounts[index], // 🔥 Add unread message count
+        unreadCount: unreadCounts[index],
         user: {
           id: targetId,
           avatar: userData.avatar || null,
@@ -162,7 +160,6 @@ export const getBookingStats = async (req, res) => {
       unreadRoomsCount: 0,
     };
 
-    // --- Calculate unreadRoomsCount, excluding rejected ones ---
     const unreadMessages = await Message.find({
       receiverId: userId,
       isRead: false,
@@ -171,13 +168,12 @@ export const getBookingStats = async (req, res) => {
     const roomSet = new Set();
 
     for (let msg of unreadMessages) {
-      // Find if booking between current user and sender is not rejected
       const booking = await Booking.findOne({
         $or: [
           { customerId: userId, providerId: msg.senderId },
           { providerId: userId, customerId: msg.senderId },
         ],
-        status: { $ne: "rejected" }, // NOT rejected
+        status: { $ne: "rejected" }, 
       });
 
       if (booking) {
@@ -205,7 +201,7 @@ export const updateStatus = async (req, res) => {
     const updated = await Booking.findByIdAndUpdate(
       req.params.id,
       { status, timeSlot },
-      { new: true }
+      { new: true },
     );
 
     res.status(200).json(updated);
@@ -215,10 +211,9 @@ export const updateStatus = async (req, res) => {
   }
 };
 
-// Helper to get PayPal Access Token
 const getPaypalAccessToken = async () => {
   const auth = Buffer.from(
-    `${process.env.PAYPAL_CLIENT_ID}:${process.env.PAYPAL_CLIENT_SECRET}`
+    `${process.env.PAYPAL_CLIENT_ID}:${process.env.PAYPAL_CLIENT_SECRET}`,
   ).toString("base64");
   const response = await axios({
     url: "https://api-m.sandbox.paypal.com/v1/oauth2/token",
@@ -237,46 +232,39 @@ export const createPaypalOrder = async (req, res) => {
     if (!booking) return res.status(404).json({ message: "Booking not found" });
 
     const provider = await User.findById(booking.providerId);
-    if (!provider) return res.status(404).json({ message: "Provider not found" });
+    if (!provider)
+      return res.status(404).json({ message: "Provider not found" });
 
     let totalAmount = 0;
+    const inrToUsd = parseFloat(process.env.INR_TO_USD_RATE) || 0.012;
 
     if (provider.servicesOffered && provider.Pricing) {
       booking.serviceName.forEach((bookedService) => {
-
         const serviceIndex = provider.servicesOffered.findIndex(
-          (s) => s?.trim().toLowerCase() === bookedService?.trim().toLowerCase()
+          (s) =>
+            s?.trim().toLowerCase() === bookedService?.trim().toLowerCase(),
         );
-
-        const inrToUsd = parseFloat(process.env.INR_TO_USD_RATE) || 0.012;
-
-        if (serviceIndex !== -1 && provider.Pricing[serviceIndex]) {
-
-          provider.Pricing[serviceIndex] = parseFloat(
-            (provider.Pricing[serviceIndex] * inrToUsd).toFixed(2)
+        if (serviceIndex !== -1 && provider.Pricing[serviceIndex] != null) {
+          const priceInUsd = parseFloat(
+            (provider.Pricing[serviceIndex] * inrToUsd).toFixed(2),
           );
-        }
-
-        if (serviceIndex !== -1 && provider.Pricing[serviceIndex]) {
-          totalAmount += provider.Pricing[serviceIndex];
+          totalAmount += priceInUsd;
         } else {
-          console.warn(`Price not found for service: "${bookedService}" at index ${serviceIndex}`);
+          console.warn(`Price not found for service: "${bookedService}"`);
         }
       });
     }
 
     console.log("Calculated Total Amount:", totalAmount);
 
-    // CRITICAL: PayPal validation check
     if (totalAmount <= 0) {
       return res.status(400).json({
-        error: "Total amount must be greater than zero. Ensure provider has prices set for these services.",
+        error: "Total amount must be greater than zero.",
       });
     }
 
     const accessToken = await getPaypalAccessToken();
 
-    // 3. Create PayPal Order
     const response = await axios({
       url: "https://api-m.sandbox.paypal.com/v2/checkout/orders",
       method: "post",
@@ -291,7 +279,7 @@ export const createPaypalOrder = async (req, res) => {
             reference_id: bookingId.toString(),
             amount: {
               currency_code: "USD",
-              value: totalAmount.toFixed(2), // Formats 50 to "50.00"
+              value: totalAmount.toFixed(2),
             },
             description: `Services: ${booking.serviceName.join(", ")}`,
           },
@@ -306,13 +294,21 @@ export const createPaypalOrder = async (req, res) => {
   }
 };
 
-// 2. Capture Order & Update DB
 export const capturePaypalOrder = async (req, res) => {
   try {
     const { orderID, bookingId } = req.body;
+
+    const booking = await Booking.findById(bookingId);
+    if (!booking) return res.status(404).json({ message: "Booking not found" });
+    if (booking.paid) {
+      return res
+        .status(200)
+        .json({ success: true, message: "Already processed" });
+    }
+
     const accessToken = await getPaypalAccessToken();
 
-    const response = await axios({
+    const captureResponse = await axios({
       url: `https://api-m.sandbox.paypal.com/v2/checkout/orders/${orderID}/capture`,
       method: "post",
       headers: {
@@ -321,30 +317,64 @@ export const capturePaypalOrder = async (req, res) => {
       },
     });
 
-    if (response.data.status === "COMPLETED") {
-      // Update your database
-      const booking = await Booking.findById(bookingId);
+    if (captureResponse.data.status === "COMPLETED") {
+      const totalAmount = parseFloat(
+        captureResponse.data.purchase_units[0].payments.captures[0].amount
+          .value,
+      );
+      const providerAmount = (totalAmount * 0.9).toFixed(2);
+
+      const provider = await User.findById(booking.providerId);
+      console.log(
+        "Paying out to:",
+        provider.paypalEmail,
+        "Amount:",
+        providerAmount,
+      );
+
+      await axios({
+        url: "https://api-m.sandbox.paypal.com/v1/payments/payouts",
+        method: "post",
+        headers: {
+          Authorization: `Bearer ${accessToken}`,
+          "Content-Type": "application/json",
+        },
+        data: {
+          sender_batch_header: {
+            sender_batch_id: `payout_${bookingId}_${Date.now()}`,
+            email_subject: "You have a payout!",
+            recipient_type: "EMAIL",
+          },
+          items: [
+            {
+              recipient_wallet: "PAYPAL",
+              amount: {
+                value: providerAmount,
+                currency: "USD",
+              },
+              note: `Payment for booking ${bookingId}`,
+              receiver: provider.paypalEmail,
+            },
+          ],
+        },
+      });
+
       booking.paid = true;
-      booking.payment = {
-        method: "paypal",
-        transactionId: response.data.id,
-        amount:
-          response.data.purchase_units[0].payments.captures[0].amount.value,
-        paidAt: new Date(),
-      };
+      booking.payoutStatus = "initiated";
       await booking.save();
+
       return res
         .status(200)
-        .json({ success: true, message: "Payment Verified" });
+        .json({ success: true, data: captureResponse.data });
     }
 
-    res.status(400).json({ success: false, message: "Payment not completed" });
+    res.status(400).json({ error: "Payment not captured" });
   } catch (error) {
-    res.status(500).json({ error: error.message });
+    console.error("Capture Error:", error.response?.data || error.message);
+    res.status(500).json({ error: "Failed to complete transaction" });
   }
 };
 
-// Return PayPal client id (safe to expose)
 export const getPaypalClientId = async (req, res) => {
   try {
     const clientId = process.env.PAYPAL_CLIENT_ID || null;
@@ -364,7 +394,6 @@ export const submitRating = async (req, res) => {
         .status(400)
         .json({ message: "Booking ID and rating required" });
 
-    // 1. Fetch the booking
     const booking = await Booking.findById(bookingId);
     if (!booking) return res.status(404).json({ message: "Booking not found" });
 
@@ -382,11 +411,9 @@ export const submitRating = async (req, res) => {
       return res.status(400).json({ message: "Booking already rated" });
     }
 
-    // 2. Save rating inside booking
     booking.rating = parseFloat(rating);
     await booking.save();
 
-    // 3. Update provider rating in User model
     const provider = await User.findById(booking.providerId);
     if (!provider)
       return res.status(404).json({ message: "Provider not found" });
@@ -433,13 +460,11 @@ export const getBookingChartData = async (req, res) => {
       return res.status(400).json({ message: "Invalid user role" });
     }
 
-    // Prepare last 7 days dates
     const dates = [];
     for (let i = 6; i >= 0; i--) {
       dates.push(moment().subtract(i, "days").startOf("day"));
     }
 
-    // Initialize dailyCounts with 0
     const dailyCounts = dates.map((date) => ({
       date: date.format("YYYY-MM-DD"),
       bookings: 0,
@@ -453,7 +478,6 @@ export const getBookingChartData = async (req, res) => {
       createdAt: { $gte: startDate, $lte: endDate },
     }).lean();
 
-    // Count bookings per day
     for (const booking of bookings) {
       const day = moment(booking.createdAt).format("YYYY-MM-DD");
       const found = dailyCounts.find((d) => d.date === day);

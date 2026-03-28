@@ -39,6 +39,10 @@ const userSchema = new Schema(
     availability: { type: Boolean, default: true }, // For providers
     createdAt: { type: Date, default: Date.now },
 
+    paypalEmail: {
+      type: String,
+    },
+
     accessToken: String, // For authentication
   },
   { timestamps: true }
