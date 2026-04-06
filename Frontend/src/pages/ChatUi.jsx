@@ -36,7 +36,7 @@ const ChatPage = () => {
       // If no cursor is passed, Backend hits Redis (Upstash) for Page 1
       const queryCursor = !isInitial && cursor ? `&cursor=${cursor}` : "";
       const res = await fetch(
-        `http://localhost:5000/api/v1/auth/getChatHistory/${roomId}?limit=20${queryCursor}`,
+        `https://service-provider-website.onrender.com/api/v1/auth/getChatHistory/${roomId}?limit=20${queryCursor}`,
         { credentials: "include" }
       );
       const data = await res.json();
@@ -80,7 +80,7 @@ const ChatPage = () => {
     const initChat = async () => {
       // Fetch Current User
       try {
-        const res = await fetch("http://localhost:5000/api/v1/auth/getCurrentUser", { credentials: "include" });
+        const res = await fetch("https://service-provider-website.onrender.com/api/v1/auth/getCurrentUser", { credentials: "include" });
         const data = await res.json();
         if (data.success) setCurrentUserId(data.user._id);
         else navigate("/login");
@@ -89,7 +89,7 @@ const ChatPage = () => {
       // Fetch Receiver Details
       if (targetUserId) {
         try {
-          const res = await fetch(`http://localhost:5000/api/v1/auth/getUserDetails/${targetUserId}`);
+          const res = await fetch(`https://service-provider-website.onrender.com/api/v1/auth/getUserDetails/${targetUserId}`);
           const data = await res.json();
           if (data.success) setUserDetails(data.user);
         } catch (err) { console.error(err); }
