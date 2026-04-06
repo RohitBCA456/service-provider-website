@@ -8,6 +8,7 @@ import bookingRouter from "./Routers/Booking.Router.js";
 import authRouter from "./Routers/Auth.Router.js";
 import http from "http";
 import { initSocket } from "./utilities/Socket.utility.js";
+import { redisClient } from "./config/redis.config.js";
 
 dotenv.config({ path: "./.env" });
 
@@ -36,5 +37,11 @@ app.use("/api/v1/customers", customerRouter);
 app.use("/api/v1/providers", providerRouter);
 app.use("/api/v1/booking", bookingRouter);
 app.use("/api/v1/auth", authRouter);
+
+app.on('error', (err) => {
+  console.error(`App error: ${err.message}`);
+})
+
+redisClient.connect();
 
 export { app, server };

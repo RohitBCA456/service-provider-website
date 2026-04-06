@@ -1,287 +1,239 @@
-import React, { useState, useRef, useEffect } from "react";
+import React, { useState, useRef, useEffect, useCallback } from "react";
 import { socket } from "../Socket.js";
-import { useLocation } from "react-router-dom";
+import { useLocation, useNavigate } from "react-router-dom";
 
 const ChatPage = () => {
   const location = useLocation();
+  const navigate = useNavigate();
   const targetUserId = location.state?.id;
 
+  // States
   const [currentUserId, setCurrentUserId] = useState(null);
   const [messages, setMessages] = useState([]);
   const [inputValue, setInputValue] = useState("");
   const [userDetails, setUserDetails] = useState(null);
+  
+  // Pagination & Loading States
+  const [cursor, setCursor] = useState(null);
+  const [hasMore, setHasMore] = useState(true);
+  const [isLoading, setIsLoading] = useState(false);
+  const [isInitialLoad, setIsInitialLoad] = useState(true);
+
   const messagesEndRef = useRef(null);
+  const chatContainerRef = useRef(null);
 
-  // ✅ Get consistent room ID once both IDs are available
-  const roomId =
-    currentUserId && targetUserId
-      ? [currentUserId, targetUserId].sort().join("-")
-      : null;
+  // Consistent Room ID: Sorted IDs ensure both users hit the same Redis Key
+  const roomId = currentUserId && targetUserId 
+    ? [currentUserId, targetUserId].sort().join("-") 
+    : null;
 
-  useEffect(() => {
-    const updateIsRead = async () => {
-      if (!roomId || !currentUserId) return;
+  // 1. Fetch Chat History (Supports Cursor Pagination)
+  const fetchMessages = useCallback(async (isInitial = false) => {
+    if (!roomId || isLoading || (!hasMore && !isInitial)) return;
 
-      try {
-        const res = await fetch(
-          "https://service-provider-website.onrender.com/api/v1/auth/markAsRead",
-          {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({ roomId, userId: currentUserId }),
-          }
-        );
+    setIsLoading(true);
+    try {
+      // If no cursor is passed, Backend hits Redis (Upstash) for Page 1
+      const queryCursor = !isInitial && cursor ? `&cursor=${cursor}` : "";
+      const res = await fetch(
+        `http://localhost:5000/api/v1/auth/getChatHistory/${roomId}?limit=20${queryCursor}`,
+        { credentials: "include" }
+      );
+      const data = await res.json();
 
-        const data = await res.json();
-        if (!data.success) {
-          console.error("Failed to mark messages as read:", data.message);
-        }
-      } catch (err) {
-        console.error("Error marking messages as read:", err);
-      }
-    };
+      if (data.success) { 
+        const formatted = data.messages.map((msg) => ({
+          id: msg._id,
+          content: msg.message,
+          sender: msg.senderId === currentUserId ? "me" : "user",
+          timestamp: new Date(msg.createdAt),
+        }));
 
-    updateIsRead();
-  }, [roomId, currentUserId]);
-
-  // ✅ Fetch current user from backend
-  useEffect(() => {
-    const fetchCurrentUser = async () => {
-      try {
-        const res = await fetch(
-          "https://service-provider-website.onrender.com/api/v1/auth/getCurrentUser",
-          {
-            credentials: "include", // needed to send cookies
-          }
-        );
-        const data = await res.json();
-        if (data.success) {
-          setCurrentUserId(data.user._id);
-        } else {
-          console.error("Failed to fetch current user");
-        }
-      } catch (err) {
-        console.error("Error fetching current user:", err);
-      }
-    };
-
-    fetchCurrentUser();
-  }, []);
-
-  // ✅ Fetch receiver user info
-  useEffect(() => {
-    if (!targetUserId) return;
-
-    const fetchUserDetails = async () => {
-      try {
-        const res = await fetch(
-          `https://service-provider-website.onrender.com/api/v1/auth/getUserDetails/${targetUserId}`
-        );
-        const data = await res.json();
-        if (data.success) {
-          setUserDetails(data.user);
-        } else {
-          console.error("User fetch failed:", data.message);
-        }
-      } catch (err) {
-        console.error("Error fetching user details:", err);
-      }
-    };
-
-    fetchUserDetails();
-  }, [targetUserId]);
-
-  // ✅ Fetch old chat history
-  useEffect(() => {
-    if (!roomId) return;
-
-    const fetchMessages = async () => {
-      try {
-        const res = await fetch(
-          `https://service-provider-website.onrender.com/api/v1/auth/getChatHistory/${roomId}`
-        );
-        const data = await res.json();
-        if (data.success) {
-          const formatted = data.messages.map((msg) => ({
-            id: msg._id,
-            content: msg.message,
-            sender: msg.senderId === currentUserId ? "me" : "user",
-            timestamp: new Date(msg.createdAt),
-          }));
+        if (isInitial) {
           setMessages(formatted);
+          setIsInitialLoad(false);
         } else {
-          console.error("Failed to load chat history");
+          // Prepend older messages to the top
+          const scrollContainer = chatContainerRef.current;
+          const previousScrollHeight = scrollContainer.scrollHeight;
+
+          setMessages((prev) => [...formatted, ...prev]);
+
+          // Adjust scroll so user stays at the same message position
+          setTimeout(() => {
+            scrollContainer.scrollTop = scrollContainer.scrollHeight - previousScrollHeight;
+          }, 0);
         }
-      } catch (err) {
-        console.error("Error fetching chat history:", err);
+
+        setCursor(data.nextCursor);
+        setHasMore(!!data.nextCursor);
+      }
+    } catch (err) {
+      console.error("Error fetching chat history:", err);
+    } finally {
+      setIsLoading(false);
+    }
+  }, [roomId, cursor, isLoading, hasMore, currentUserId]);
+
+  // 2. Fetch Users & Initial Data
+  useEffect(() => {
+    const initChat = async () => {
+      // Fetch Current User
+      try {
+        const res = await fetch("http://localhost:5000/api/v1/auth/getCurrentUser", { credentials: "include" });
+        const data = await res.json();
+        if (data.success) setCurrentUserId(data.user._id);
+        else navigate("/login");
+      } catch (err) { console.error(err); }
+
+      // Fetch Receiver Details
+      if (targetUserId) {
+        try {
+          const res = await fetch(`http://localhost:5000/api/v1/auth/getUserDetails/${targetUserId}`);
+          const data = await res.json();
+          if (data.success) setUserDetails(data.user);
+        } catch (err) { console.error(err); }
       }
     };
+    initChat();
+  }, [targetUserId, navigate]);
 
-    fetchMessages();
-  }, [roomId, currentUserId]);
-
-  // ✅ Socket join and listener
+  // 3. Trigger Initial Message Fetch
   useEffect(() => {
-    if (!currentUserId || !targetUserId) return;
+    if (roomId && currentUserId) {
+      fetchMessages(true);
+    }
+  }, [roomId, currentUserId]); // Runs only when roomId is ready
+
+  // 4. Socket Listeners
+  useEffect(() => {
+    if (!currentUserId) return;
 
     socket.emit("join", currentUserId);
 
     socket.on("receive-message", (data) => {
-      if (data.senderId === targetUserId) {
-        setMessages((prev) => [
-          ...prev,
-          {
-            id: Date.now().toString(),
-            content: data.message,
-            sender: "user",
-            timestamp: new Date(),
-          },
-        ]);
-      }
+      // Only add to UI if message belongs to THIS room
+      setMessages((prev) => [
+        ...prev,
+        {
+          id: Date.now().toString(),
+          content: data.message,
+          sender: "user",
+          timestamp: new Date(),
+        },
+      ]);
+      scrollToBottom();
     });
 
-    return () => {
-      socket.off("receive-message");
-    };
-  }, [currentUserId, targetUserId]);
+    return () => socket.off("receive-message");
+  }, [currentUserId]);
 
-  // ✅ Send message via socket
-  const handleSendMessage = () => {
-    if (!inputValue.trim()) return;
-    if (!currentUserId || !targetUserId) {
-      console.log(currentUserId, targetUserId)
-      console.warn("Missing sender or receiver ID");
-      return;
+  // 5. Scroll & Input Handlers
+  const handleScroll = (e) => {
+    if (e.target.scrollTop === 0 && hasMore && !isLoading) {
+      fetchMessages(false);
     }
-
-    console.log("Message sending...");
-
-    const newMessage = {
-      id: Date.now().toString(),
-      content: inputValue,
-      sender: "me",
-      timestamp: new Date(),
-    };
-
-    setMessages((prev) => [...prev, newMessage]);
-
-    socket.emit("send-message", {
-      senderId: currentUserId,
-      receiverId: targetUserId,
-      message: inputValue,
-    });
-
-    setInputValue("");
   };
 
   const scrollToBottom = () => {
-    messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
+    setTimeout(() => {
+      messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
+    }, 100);
   };
 
-  useEffect(() => {
+  const handleSendMessage = () => {
+    if (!inputValue.trim() || !currentUserId || !targetUserId) return;
+
+    const messagePayload = {
+      senderId: currentUserId,
+      receiverId: targetUserId,
+      message: inputValue,
+      roomId, // Sent to backend to trigger Redis cache deletion
+    };
+
+    // Optimistic Update: Show locally immediately
+    setMessages((prev) => [
+      ...prev,
+      {
+        id: Date.now().toString(),
+        content: inputValue,
+        sender: "me",
+        timestamp: new Date(),
+      },
+    ]);
+
+    socket.emit("send-message", messagePayload);
+    setInputValue("");
     scrollToBottom();
-  }, [messages]);
-
-  const formatTime = (date) => {
-    return date.toLocaleTimeString("en-US", {
-      hour: "2-digit",
-      minute: "2-digit",
-      hour12: true,
-    });
   };
 
-  const renderAvatar = (sender) => {
-    const initials =
-      sender === "me" ? "Me" : userDetails?.name?.[0]?.toUpperCase() || "U";
-    const bg = sender === "me" ? "bg-purple-500" : "bg-blue-500";
-    return (
-      <div
-        className={`h-8 w-8 rounded-full ${bg} text-white flex items-center justify-center font-bold`}
-      >
-        {initials}
-      </div>
-    );
-  };
+  // 6. UI Helpers
+  const formatTime = (date) => date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-100 flex flex-col">
+    <div className="flex flex-col h-screen bg-slate-50">
       {/* Header */}
-      <div className="sticky top-0 bg-white shadow-sm px-4 py-3 border-b flex items-center gap-3 z-10">
-        {userDetails?.avatar ? (
-          <img
-            src={userDetails.avatar}
-            alt="User"
-            className="h-10 w-10 rounded-full object-cover"
-          />
-        ) : (
-          <div className="h-10 w-10 rounded-full bg-blue-500 text-white flex items-center justify-center font-bold">
-            {userDetails?.name?.[0]?.toUpperCase() || "U"}
+      <header className="bg-white border-b px-6 py-4 flex items-center gap-4 shadow-sm">
+        <div className="h-10 w-10 rounded-full bg-indigo-600 text-white flex items-center justify-center font-bold">
+          {userDetails?.name?.[0]?.toUpperCase() || "U"}
+        </div>
+        <div>
+          <h2 className="font-bold text-gray-800">{userDetails?.name || "Loading..."}</h2>
+          <span className="text-xs text-green-500 font-medium">● Online</span>
+        </div>
+      </header>
+
+      {/* Messages Area */}
+      <main 
+        ref={chatContainerRef}
+        onScroll={handleScroll}
+        className="flex-1 overflow-y-auto p-4 space-y-4"
+      >
+        {isLoading && (
+          <div className="text-center py-2">
+            <span className="text-xs bg-gray-200 px-3 py-1 rounded-full text-gray-500">Loading history...</span>
           </div>
         )}
-        <div>
-          <h2 className="text-lg font-semibold text-gray-800">
-            {userDetails?.name || "Loading..."}
-          </h2>
-          <p className="text-sm text-green-500 flex items-center gap-1">
-            <span className="w-2 h-2 bg-green-500 rounded-full animate-ping" />
-            Online
-          </p>
-        </div>
-      </div>
 
-      {/* Messages */}
-      <div className="flex-1 overflow-y-auto px-4 py-6 space-y-4">
-        {messages.map((msg) => (
-          <div
-            key={msg.id}
-            className={`flex ${
-              msg.sender === "me" ? "justify-end" : "justify-start"
-            }`}
-          >
-            {msg.sender !== "me" && renderAvatar("user")}
-            <div
-              className={`max-w-xs sm:max-w-md p-3 rounded-lg text-sm shadow ${
-                msg.sender === "me"
-                  ? "bg-gradient-to-r from-purple-500 to-indigo-600 text-white ml-auto"
-                  : "bg-white border border-gray-200 text-gray-800"
-              }`}
-            >
+        {messages.map((msg, idx) => (
+          <div key={msg.id || idx} className={`flex ${msg.sender === "me" ? "justify-end" : "justify-start"}`}>
+            <div className={`max-w-[75%] p-3 rounded-2xl shadow-sm text-sm ${
+              msg.sender === "me" 
+                ? "bg-indigo-600 text-white rounded-tr-none" 
+                : "bg-white text-gray-800 border rounded-tl-none"
+            }`}>
               <p>{msg.content}</p>
-              <p className="text-xs text-gray-400 mt-1 text-right">
+              <span className={`text-[10px] block mt-1 ${msg.sender === "me" ? "text-indigo-100" : "text-gray-400"}`}>
                 {formatTime(msg.timestamp)}
-              </p>
+              </span>
             </div>
-            {msg.sender === "me" && renderAvatar("me")}
           </div>
         ))}
         <div ref={messagesEndRef} />
-      </div>
+      </main>
 
-      {/* Input */}
-      <div className="sticky bottom-0 bg-white border-t p-4 z-10">
-        <div className="flex items-center gap-3">
+      {/* Input Area */}
+      <footer className="p-4 bg-white border-t">
+        <div className="max-w-4xl mx-auto flex items-center gap-3">
           <input
             type="text"
+            className="flex-1 bg-gray-100 text-black border-none rounded-full px-5 py-3 text-sm focus:ring-2 focus:ring-indigo-500 outline-none"
             placeholder="Type your message..."
             value={inputValue}
             onChange={(e) => setInputValue(e.target.value)}
-            onKeyDown={(e) => {
-              if (e.key === "Enter" && !e.shiftKey) {
-                e.preventDefault();
-                handleSendMessage();
-              }
-            }}
-            className="flex-1 px-4 py-2 text-gray-700 rounded-full border border-gray-300 focus:outline-none focus:ring-2 focus:ring-blue-400"
+            onKeyDown={(e) => e.key === "Enter" && handleSendMessage()}
           />
-          <button
+          <button 
             onClick={handleSendMessage}
             disabled={!inputValue.trim()}
-            className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-full transition disabled:opacity-50"
+            className="bg-indigo-600 hover:bg-indigo-700 text-white w-10 h-10 rounded-full flex items-center justify-center transition-all disabled:opacity-50"
           >
-            Send
+            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M5 13l4 4L19 7" />
+            </svg>
           </button>
         </div>
-      </div>
+      </footer>
     </div>
   );
 };

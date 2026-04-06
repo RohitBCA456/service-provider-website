@@ -1,5 +1,6 @@
 import { Server } from "socket.io";
 import { Message } from "../Models/Message.Model.js";
+import { redisClient } from "../config/redis.config.js";
 
 let io;
 
@@ -16,26 +17,36 @@ export const initSocket = (httpServer) => {
 
     socket.on("send-message", async ({ senderId, receiverId, message }) => {
       try {
-        if (!senderId || !receiverId || !message) {
-          console.error("Missing data in send-message event");
-          return;
-        }
-
         const participants = [senderId, receiverId].sort();
         const roomId = `${participants[0]}-${participants[1]}`;
 
-        // Save to database
-        await Message.create({
+        const newMessage = await Message.create({
           senderId,
           receiverId,
           message,
           roomId,
         });
 
-        // Emit to recipient
+        const cacheKey = `chat:${roomId}:latest`;
+        const cachedMessages = await redisClient.get(cacheKey);
+
+        if (cachedMessages) {
+          const parsedCache = JSON.parse(cachedMessages);
+
+          parsedCache.messages.push(newMessage);
+
+          if (parsedCache.messages.length > 20) {
+            parsedCache.messages.shift();
+          }
+
+          await redisClient.setEx(cacheKey, 3600, JSON.stringify(parsedCache));
+        }
+
         socket.to(receiverId).emit("receive-message", {
+          id: newMessage._id,
           senderId,
           message,
+          createdAt: newMessage.createdAt,
         });
       } catch (error) {
         console.error("Error saving message:", error);

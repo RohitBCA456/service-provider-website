@@ -1,3 +1,4 @@
+import { redisClient } from "../config/redis.config.js";
 import { User } from "../Models/User.Model.js";
 import { uploadOnCloudinary } from "../utilities/Cloudinary.utilities.js";
 
@@ -75,6 +76,13 @@ export const updateCustomerProfile = async (req, res) => {
     };
 
     await customer.save();
+
+    await redisClient.setEx(
+      `currentUser:${customer._id}`,
+      3600,
+      JSON.stringify(customer),
+    );
+
     return res.json({ message: "Customer updated", customer });
   } catch (error) {
     console.error("Error updating customer profile:", error);
@@ -85,44 +93,43 @@ export const updateCustomerProfile = async (req, res) => {
 };
 
 export const logoutCustomer = async (req, res) => {
- try {
-   const userId = req.user?.id;
- 
-   const customer = await User.findByIdAndUpdate(
-     userId,
-     {
-       $unset: {
-         accessToken: "",
-       },
-     },
-     {
-       new: true,
-     }
-   );
- 
+  try {
+    const userId = req.user?.id;
+
+    const customer = await User.findByIdAndUpdate(
+      userId,
+      {
+        $unset: {
+          accessToken: "",
+        },
+      },
+      {
+        new: true,
+      },
+    );
+
     if (!customer) {
-     return res.status(404).json({
-       success: false,
-       message: "No user found",
-     });
-   }
- 
-   const options = {
-     httpOnly: true,
-     secure: true,
-     sameSite: "None",
-     path: "/",
-   };
- 
-   return res.status(200).clearCookie("accessToken", options).json({
-     success: true,
-     message: "Logout Successfully",
-   });
- 
- } catch (error) {
+      return res.status(404).json({
+        success: false,
+        message: "No user found",
+      });
+    }
+
+    const options = {
+      httpOnly: true,
+      secure: true,
+      sameSite: "None",
+      path: "/",
+    };
+
+    return res.status(200).clearCookie("accessToken", options).json({
+      success: true,
+      message: "Logout Successfully",
+    });
+  } catch (error) {
     return res.status(500).json({
       success: false,
-      message: 'Internal server error while logging out'
-    })
- }
+      message: "Internal server error while logging out",
+    });
+  }
 };

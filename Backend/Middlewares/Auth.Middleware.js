@@ -1,10 +1,13 @@
 import jwt from "jsonwebtoken";
+import dotenv from "dotenv";
+
+dotenv.config({ path: "./.env" });
 
 export const authMiddleware = async (req, res, next) => {
   try {
     const token =
       req.cookies?.accessToken ||
-      req.header("Authorization").replace("Bearer", "");
+      req.header("Authorization")?.replace("Bearer", "").trim();
 
     if (!token) {
       return res.status(401).json({
@@ -13,7 +16,11 @@ export const authMiddleware = async (req, res, next) => {
       });
     }
 
+    // console.log("Received token:", token);
+
     const decodedToken = jwt.verify(token, process.env.JWT_SECRET);
+
+    // console.log("Decoded token:", decodedToken);
 
     if (!decodedToken) {
       return res.status(401).json({

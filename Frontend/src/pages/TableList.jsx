@@ -30,7 +30,7 @@ const PayPalPayButton = ({ booking, paypalClientId, fetchBookings }) => {
           }}
           createOrder={async () => {
             const res = await axios.post(
-              "https://service-provider-website.onrender.com/api/v1/booking/createPaypalOrder",
+              "http://localhost:5000/api/v1/booking/createPaypalOrder",
               { bookingId: booking.bookingId },
               { withCredentials: true },
             );
@@ -38,7 +38,7 @@ const PayPalPayButton = ({ booking, paypalClientId, fetchBookings }) => {
           }}
           onApprove={async (data) => {
             const res = await axios.post(
-              "https://service-provider-website.onrender.com/api/v1/booking/capturePaypalOrder",
+              "http://localhost:5000/api/v1/booking/capturePaypalOrder",
               {
                 orderID: data.orderID,
                 bookingId: booking.bookingId,
@@ -83,14 +83,14 @@ const TableList = () => {
       try {
         // Fetch User Role
         const roleRes = await axios.get(
-          "https://service-provider-website.onrender.com/api/v1/auth/fetchUserRole",
+          "http://localhost:5000/api/v1/auth/fetchUserRole",
           { withCredentials: true },
         );
         if (roleRes.data.success) setRole(roleRes.data.userRole);
 
         // Fetch Bookings
         const bookingRes = await axios.post(
-          "https://service-provider-website.onrender.com/api/v1/booking/getBookingStatus",
+          "http://localhost:5000/api/v1/booking/getBookingStatus",
           { status },
           { withCredentials: true },
         );
@@ -99,7 +99,7 @@ const TableList = () => {
         // Fetch PayPal Client ID — non-blocking, page still renders without it
         try {
           const paypalRes = await axios.get(
-            "https://service-provider-website.onrender.com/api/v1/booking/getPaypalClientId",
+            "http://localhost:5000/api/v1/booking/getPaypalClientId",
           );
           if (paypalRes.data.clientId) setPaypalClientId(paypalRes.data.clientId);
         } catch (paypalErr) {
@@ -118,7 +118,7 @@ const TableList = () => {
   const fetchBookings = async () => {
     try {
       const response = await axios.post(
-        "https://service-provider-website.onrender.com/api/v1/booking/getBookingStatus",
+        "http://localhost:5000/api/v1/booking/getBookingStatus",
         { status },
         { withCredentials: true },
       );
@@ -137,7 +137,7 @@ const TableList = () => {
     setActionLoading((prev) => ({ ...prev, [bookingId]: true }));
     try {
       await axios.put(
-        `https://service-provider-website.onrender.com/api/v1/booking/updateStatus/${bookingId}`,
+        `http://localhost:5000/api/v1/booking/updateStatus/${bookingId}`,
         {
           status: "accepted",
           timeSlot: { date, time },
@@ -157,7 +157,7 @@ const TableList = () => {
   const handleReject = async (bookingId) => {
     try {
       await axios.put(
-        `https://service-provider-website.onrender.com/api/v1/booking/updateStatus/${bookingId}`,
+        `http://localhost:5000/api/v1/booking/updateStatus/${bookingId}`,
         { status: "rejected" },
         { withCredentials: true },
       );
@@ -175,7 +175,7 @@ const TableList = () => {
     if (!window.confirm("Mark as complete?")) return;
     try {
       await axios.put(
-        `https://service-provider-website.onrender.com/api/v1/booking/updateStatus/${bookingId}`,
+        `http://localhost:5000/api/v1/booking/updateStatus/${bookingId}`,
         { status: "completed" },
         { withCredentials: true },
       );
@@ -189,7 +189,7 @@ const TableList = () => {
   const handleRating = async (bookingId, rating) => {
     try {
       await axios.post(
-        "https://service-provider-website.onrender.com/api/v1/booking/submitRating",
+        "http://localhost:5000/api/v1/booking/submitRating",
         { bookingId, rating },
         { withCredentials: true },
       );

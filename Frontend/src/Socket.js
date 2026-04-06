@@ -1,3 +1,3 @@
 import { io } from "socket.io-client";
 
-export const socket = io("https://service-provider-website.onrender.com");
+export const socket = io("http://localhost:5000");

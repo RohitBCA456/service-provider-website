@@ -2,6 +2,7 @@ import { User } from "../Models/User.Model.js";
 import { Message } from "../Models/Message.Model.js";
 import { uploadOnCloudinary } from "../utilities/Cloudinary.utilities.js";
 import { Resend } from "resend";
+import { redisClient } from "../config/redis.config.js";
 
 export const registerUser = async (req, res) => {
   try {
@@ -21,7 +22,7 @@ export const registerUser = async (req, res) => {
 
     if (
       ![name, email, password, role, latitude, longitude, address].every(
-        Boolean
+        Boolean,
       )
     ) {
       return res.status(400).json({ message: "All fields are required" });
@@ -139,11 +140,28 @@ export const getUserDetails = async (req, res) => {
       return res.status(400).json({ message: "User ID is required" });
     }
 
+    const key = `userDetails:${userId}`;
+
+    const cachedUser = await redisClient.get(key);
+
+    if (cachedUser) {
+      console.log("User details fetched from Redis cache");
+
+      return res.status(200).json({
+        success: true,
+        user: JSON.parse(cachedUser),
+      });
+    }
+
     const user = await User.findById(userId).select("-password");
 
     if (!user) {
       return res.status(404).json({ message: "User not found" });
     }
+
+    await redisClient.setEx(key, 3600, JSON.stringify(user));
+
+    console.log("User details fetched from MongoDB and cached in Redis");
 
     res.status(200).json({
       success: true,
@@ -157,16 +175,36 @@ export const getUserDetails = async (req, res) => {
 
 export const getChatHistory = async (req, res) => {
   const { roomId } = req.params;
-
-  if (!roomId) {
-    return res.status(400).json({ message: "Room ID is required" });
-  }
+  const { cursor, limit = 20 } = req.query;
+  const isFirstPage = !cursor;
+  const cacheKey = `chat:${roomId}:latest`;
 
   try {
-    const messages = await Message.find({ roomId }).sort("createdAt");
-    res.status(200).json({ success: true, messages });
+    if (isFirstPage) {
+      const cachedData = await redisClient.get(cacheKey);
+      if (cachedData) return res.status(200).json(JSON.parse(cachedData));
+    }
+
+    const query = { roomId };
+    if (cursor) query.createdAt = { $lt: new Date(cursor) };
+
+    const messages = await Message.find(query)
+      .sort({ createdAt: -1 })
+      .limit(Number(limit));
+
+    const response = {
+      success: true,
+      messages: messages.reverse(),
+      nextCursor:
+        messages.length > 0 ? messages[messages.length - 1].createdAt : null,
+    };
+
+    if (isFirstPage) {
+      await redisClient.setEx(cacheKey, 3600, JSON.stringify(response));
+    }
+
+    res.status(200).json(response);
   } catch (error) {
-    console.error("Error fetching messages:", error);
     res.status(500).json({ message: "Error fetching messages" });
   }
 };
@@ -174,13 +212,34 @@ export const getChatHistory = async (req, res) => {
 export const getCurrentUser = async (req, res) => {
   try {
     const userId = req.user?.id;
-    const user = await User.findById(userId);
+
+    const key = `currentUser:${userId}`;
+
+    const cachedUser = await redisClient.get(key);
+
+    if (cachedUser) {
+      console.log("current user fetched from redis cache");
+
+      return res.status(200).json({
+        success: true,
+        message: "current user fetched successfully",
+        user: JSON.parse(cachedUser),
+      });
+    }
+
+    const user = await User.findById(userId).select("-password");
+
     if (!user) {
       return res.status(404).json({
         success: false,
         message: "User not found",
       });
     }
+
+    await redisClient.setEx(key, 3600, JSON.stringify(user));
+
+    console.log("current user fetched from mongodb and cached in redis");
+
     return res.status(200).json({
       success: true,
       message: "Current user fetched successfully.",
@@ -204,7 +263,7 @@ export const markMessagesAsRead = async (req, res) => {
   try {
     await Message.updateMany(
       { roomId, receiverId: userId, isRead: false },
-      { $set: { isRead: true } }
+      { $set: { isRead: true } },
     );
     res.status(200).json({ success: true, message: "Messages marked as read" });
   } catch (err) {
@@ -224,8 +283,8 @@ export const sendContactMail = async (req, res) => {
 
     const { error } = await resend.emails.send({
       from: "Contact Form <onboarding@resend.dev>",
-      replyTo: email,                                
-      to: process.env.MAIL_RECEIVER,                
+      replyTo: email,
+      to: process.env.MAIL_RECEIVER,
       subject: `New Message from ${name} - Service Finder`,
       html: `
         <h3>Contact Details</h3>

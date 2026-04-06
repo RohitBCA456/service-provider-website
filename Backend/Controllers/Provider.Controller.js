@@ -1,3 +1,4 @@
+import { redisClient } from "../config/redis.config.js";
 import { Booking } from "../Models/Booking.Model.js";
 import { User } from "../Models/User.Model.js";
 import { uploadOnCloudinary } from "../utilities/Cloudinary.utilities.js";
@@ -128,6 +129,13 @@ export const updateProviderProfile = async (req, res) => {
     }
 
     await provider.save();
+
+    await redisClient.setEx(
+      `currentUser:${provider._id}`,
+      3600,
+      JSON.stringify(provider),
+    );
+
     return res.json({ message: "Provider updated", provider });
   } catch (error) {
     console.log(error);
