@@ -12,7 +12,7 @@ const ChatPage = () => {
   const [messages, setMessages] = useState([]);
   const [inputValue, setInputValue] = useState("");
   const [userDetails, setUserDetails] = useState(null);
-  
+
   // Pagination & Loading States
   const [cursor, setCursor] = useState(null);
   const [hasMore, setHasMore] = useState(true);
@@ -23,80 +23,122 @@ const ChatPage = () => {
   const chatContainerRef = useRef(null);
 
   // Consistent Room ID: Sorted IDs ensure both users hit the same Redis Key
-  const roomId = currentUserId && targetUserId 
-    ? [currentUserId, targetUserId].sort().join("-") 
-    : null;
+  const roomId =
+    currentUserId && targetUserId
+      ? [currentUserId, targetUserId].sort().join("-")
+      : null;
 
   // 1. Fetch Chat History (Supports Cursor Pagination)
-  const fetchMessages = useCallback(async (isInitial = false) => {
-    if (!roomId || isLoading || (!hasMore && !isInitial)) return;
+  const fetchMessages = useCallback(
+    async (isInitial = false) => {
+      if (!roomId || isLoading || (!hasMore && !isInitial)) return;
 
-    setIsLoading(true);
-    try {
-      // If no cursor is passed, Backend hits Redis (Upstash) for Page 1
-      const queryCursor = !isInitial && cursor ? `&cursor=${cursor}` : "";
-      const res = await fetch(
-        `https://service-provider-website.onrender.com/api/v1/auth/getChatHistory/${roomId}?limit=20${queryCursor}`,
-        { credentials: "include" }
-      );
-      const data = await res.json();
+      setIsLoading(true);
+      try {
+        // If no cursor is passed, Backend hits Redis (Upstash) for Page 1
+        const queryCursor = !isInitial && cursor ? `&cursor=${cursor}` : "";
+        const res = await fetch(
+          `https://service-provider-website.onrender.com/api/v1/auth/getChatHistory/${roomId}?limit=20${queryCursor}`,
+          { credentials: "include" },
+        );
+        const data = await res.json();
 
-      if (data.success) { 
-        const formatted = data.messages.map((msg) => ({
-          id: msg._id,
-          content: msg.message,
-          sender: msg.senderId === currentUserId ? "me" : "user",
-          timestamp: new Date(msg.createdAt),
-        }));
+        if (data.success) {
+          const formatted = data.messages.map((msg) => ({
+            id: msg._id,
+            content: msg.message,
+            sender: msg.senderId === currentUserId ? "me" : "user",
+            timestamp: new Date(msg.createdAt),
+          }));
 
-        if (isInitial) {
-          setMessages(formatted);
-          setIsInitialLoad(false);
-        } else {
-          // Prepend older messages to the top
-          const scrollContainer = chatContainerRef.current;
-          const previousScrollHeight = scrollContainer.scrollHeight;
+          if (isInitial) {
+            setMessages(formatted);
+            setIsInitialLoad(false);
+          } else {
+            // Prepend older messages to the top
+            const scrollContainer = chatContainerRef.current;
+            const previousScrollHeight = scrollContainer.scrollHeight;
 
-          setMessages((prev) => [...formatted, ...prev]);
+            setMessages((prev) => [...formatted, ...prev]);
 
-          // Adjust scroll so user stays at the same message position
-          setTimeout(() => {
-            scrollContainer.scrollTop = scrollContainer.scrollHeight - previousScrollHeight;
-          }, 0);
+            // Adjust scroll so user stays at the same message position
+            setTimeout(() => {
+              scrollContainer.scrollTop =
+                scrollContainer.scrollHeight - previousScrollHeight;
+            }, 0);
+          }
+
+          setCursor(data.nextCursor);
+          setHasMore(!!data.nextCursor);
         }
-
-        setCursor(data.nextCursor);
-        setHasMore(!!data.nextCursor);
+      } catch (err) {
+        console.error("Error fetching chat history:", err);
+      } finally {
+        setIsLoading(false);
       }
-    } catch (err) {
-      console.error("Error fetching chat history:", err);
-    } finally {
-      setIsLoading(false);
-    }
-  }, [roomId, cursor, isLoading, hasMore, currentUserId]);
+    },
+    [roomId, cursor, isLoading, hasMore, currentUserId],
+  );
 
   // 2. Fetch Users & Initial Data
   useEffect(() => {
     const initChat = async () => {
       // Fetch Current User
       try {
-        const res = await fetch("https://service-provider-website.onrender.com/api/v1/auth/getCurrentUser", { credentials: "include" });
+        const res = await fetch(
+          "https://service-provider-website.onrender.com/api/v1/auth/getCurrentUser",
+          { credentials: "include" },
+        );
         const data = await res.json();
         if (data.success) setCurrentUserId(data.user._id);
         else navigate("/login");
-      } catch (err) { console.error(err); }
+      } catch (err) {
+        console.error(err);
+      }
 
       // Fetch Receiver Details
       if (targetUserId) {
         try {
-          const res = await fetch(`https://service-provider-website.onrender.com/api/v1/auth/getUserDetails/${targetUserId}`);
+          const res = await fetch(
+            `https://service-provider-website.onrender.com/api/v1/auth/getUserDetails/${targetUserId}`,
+          );
           const data = await res.json();
           if (data.success) setUserDetails(data.user);
-        } catch (err) { console.error(err); }
+        } catch (err) {
+          console.error(err);
+        }
       }
     };
     initChat();
   }, [targetUserId, navigate]);
+
+ useEffect(() => {
+  const markRead = async () => {
+    const userId = currentUserId;
+    if (!roomId || !userId) {
+      console.log("Skipping markAsRead: Data not ready");
+      return; 
+    }
+
+    try {
+      const res = await fetch("https://service-provider-website.onrender.com/api/v1/auth/markAsRead", {
+        method: "POST",
+        credentials: "include",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ roomId, userId }),
+      });
+
+      if (!res.ok) {
+        const errorData = await res.json();
+        console.error("Backend rejected request:", errorData);
+      }
+    } catch (err) {
+      console.error("Network error:", err);
+    }
+  };
+
+  markRead();
+}, [roomId, currentUserId]);
 
   // 3. Trigger Initial Message Fetch
   useEffect(() => {
@@ -168,7 +210,8 @@ const ChatPage = () => {
   };
 
   // 6. UI Helpers
-  const formatTime = (date) => date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+  const formatTime = (date) =>
+    date.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" });
 
   return (
     <div className="flex flex-col h-screen bg-slate-50">
@@ -178,32 +221,43 @@ const ChatPage = () => {
           {userDetails?.name?.[0]?.toUpperCase() || "U"}
         </div>
         <div>
-          <h2 className="font-bold text-gray-800">{userDetails?.name || "Loading..."}</h2>
+          <h2 className="font-bold text-gray-800">
+            {userDetails?.name || "Loading..."}
+          </h2>
           <span className="text-xs text-green-500 font-medium">● Online</span>
         </div>
       </header>
 
       {/* Messages Area */}
-      <main 
+      <main
         ref={chatContainerRef}
         onScroll={handleScroll}
         className="flex-1 overflow-y-auto p-4 space-y-4"
       >
         {isLoading && (
           <div className="text-center py-2">
-            <span className="text-xs bg-gray-200 px-3 py-1 rounded-full text-gray-500">Loading history...</span>
+            <span className="text-xs bg-gray-200 px-3 py-1 rounded-full text-gray-500">
+              Loading history...
+            </span>
           </div>
         )}
 
         {messages.map((msg, idx) => (
-          <div key={msg.id || idx} className={`flex ${msg.sender === "me" ? "justify-end" : "justify-start"}`}>
-            <div className={`max-w-[75%] p-3 rounded-2xl shadow-sm text-sm ${
-              msg.sender === "me" 
-                ? "bg-indigo-600 text-white rounded-tr-none" 
-                : "bg-white text-gray-800 border rounded-tl-none"
-            }`}>
+          <div
+            key={msg.id || idx}
+            className={`flex ${msg.sender === "me" ? "justify-end" : "justify-start"}`}
+          >
+            <div
+              className={`max-w-[75%] p-3 rounded-2xl shadow-sm text-sm ${
+                msg.sender === "me"
+                  ? "bg-indigo-600 text-white rounded-tr-none"
+                  : "bg-white text-gray-800 border rounded-tl-none"
+              }`}
+            >
               <p>{msg.content}</p>
-              <span className={`text-[10px] block mt-1 ${msg.sender === "me" ? "text-indigo-100" : "text-gray-400"}`}>
+              <span
+                className={`text-[10px] block mt-1 ${msg.sender === "me" ? "text-indigo-100" : "text-gray-400"}`}
+              >
                 {formatTime(msg.timestamp)}
               </span>
             </div>
@@ -223,13 +277,23 @@ const ChatPage = () => {
             onChange={(e) => setInputValue(e.target.value)}
             onKeyDown={(e) => e.key === "Enter" && handleSendMessage()}
           />
-          <button 
+          <button
             onClick={handleSendMessage}
             disabled={!inputValue.trim()}
             className="bg-indigo-600 hover:bg-indigo-700 text-white w-10 h-10 rounded-full flex items-center justify-center transition-all disabled:opacity-50"
           >
-            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M5 13l4 4L19 7" />
+            <svg
+              className="w-5 h-5"
+              fill="none"
+              stroke="currentColor"
+              viewBox="0 0 24 24"
+            >
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth="2"
+                d="M5 13l4 4L19 7"
+              />
             </svg>
           </button>
         </div>

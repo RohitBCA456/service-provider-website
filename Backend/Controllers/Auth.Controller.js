@@ -251,6 +251,22 @@ export const getCurrentUser = async (req, res) => {
   }
 };
 
+export const getUnreadMessageCount = async (req, res) => {
+  try {
+    const userId = req.user?.id;
+
+    const count = await Message.countDocuments({
+      receiverId: userId,
+      isRead: false,
+    });
+
+    res.status(200).json({ success: true, unreadCount: count });
+  } catch (error) {
+    console.error("Error getting unread message count:", error);
+    res.status(500).json({ message: "Server error" });
+  }
+};
+
 export const markMessagesAsRead = async (req, res) => {
   const { roomId, userId } = req.body;
 

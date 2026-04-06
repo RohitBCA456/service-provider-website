@@ -6,56 +6,62 @@ import { uploadOnCloudinary } from "../utilities/Cloudinary.utilities.js";
 export const getALLNearByProviders = async (req, res) => {
   try {
     const { lat, lng, service } = req.query;
+    if (!lat || !lng)
+      return res.status(400).json({ message: "Coordinates required" });
 
-    if (!lat || !lng) {
-      return res
-        .status(400)
-        .json({ message: "Latitude and longitude are required" });
-    }
+    const gridLat = parseFloat(lat).toFixed(2);
+    const gridLng = parseFloat(lng).toFixed(2);
+    const cacheKey = `geo:providers:${gridLat}:${gridLng}:${service || "all"}`;
+
+    console.log("Fetching providers with cache key:", cacheKey);
 
     const customerId = req.user?.id;
-    if (!customerId) {
-      return res.status(401).json({ message: "Unauthorized" });
-    }
+    if (!customerId) return res.status(401).json({ message: "Unauthorized" });
 
     const activeBookings = await Booking.find({
       customerId,
       status: { $in: ["pending", "accepted"] },
     }).select("providerId");
-
     const bookedProviderIds = activeBookings.map((b) =>
       b.providerId?.toString(),
     );
 
-    const query = {
-      role: "provider",
-      location: {
-        $near: {
-          $geometry: {
-            type: "Point",
-            coordinates: [parseFloat(lng), parseFloat(lat)],
+    let providers;
+    const cachedData = await redisClient.get(cacheKey);
+
+    if (cachedData) {
+      providers = JSON.parse(cachedData);
+    } else {
+      const query = {
+        role: "provider",
+        location: {
+          $near: {
+            $geometry: {
+              type: "Point",
+              coordinates: [parseFloat(lng), parseFloat(lat)],
+            },
+            $maxDistance: 20000,
           },
-          $maxDistance: 20000,
         },
-      },
-    };
+      };
 
-    if (bookedProviderIds.length > 0) {
-      query._id = { $nin: bookedProviderIds };
-    }
-
-    if (service) {
-      const servicesArray = service
-        .split(",")
-        .map((s) => s.trim().toLowerCase());
-
-      if (servicesArray.length) {
+      if (service) {
+        const servicesArray = service
+          .split(",")
+          .map((s) => s.trim().toLowerCase());
         query.servicesOffered = { $in: servicesArray };
       }
+
+      providers = await User.find(query).select("-password").lean();
+
+      await redisClient.setEx(cacheKey, 600, JSON.stringify(providers));
     }
 
-    const providers = await User.find(query);
-    res.json(providers);
+    const filteredProviders = providers.filter(
+      (p) => !bookedProviderIds.includes(p._id.toString()),
+    );
+
+    res.json(filteredProviders);
   } catch (error) {
     console.error("Nearby provider error:", error);
     res.status(500).json({ message: "Server error" });

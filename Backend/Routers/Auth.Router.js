@@ -6,6 +6,7 @@ import {
   getUserDetails,
   Login,
   markMessagesAsRead,
+  getUnreadMessageCount,
   registerUser,
   sendContactMail,
 } from "../Controllers/Auth.Controller.js";
@@ -20,6 +21,9 @@ router.route("/fetchUserRole").get(authMiddleware, fetchUserRole);
 router.route("/getUserDetails/:userId").get(getUserDetails);
 router.route("/getChatHistory/:roomId").get(getChatHistory);
 router.route("/getCurrentUser").get(authMiddleware, getCurrentUser);
+router
+  .route("/getUnreadMessageCount")
+  .get(authMiddleware, getUnreadMessageCount);
 router.route("/markAsRead").post(markMessagesAsRead);
 router.route("/sendEmail").post(sendContactMail);
 
